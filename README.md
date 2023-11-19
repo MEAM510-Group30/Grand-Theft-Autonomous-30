@@ -8,7 +8,7 @@ This is the repository for project Grand Theft Automation @ MEAM5100 UPenn
 * 2 servos, 1 each, 2 total
 * 2 vive phototransistors, 1 each, 2 total
 * 3 sonars, 2 each, 6 total
-* >= 2 photosensors, 1 each, >= 2 total
+* $>= 2$ photosensors, 1 each, >= 2 total
 
 ## Bill of Materials:
 
