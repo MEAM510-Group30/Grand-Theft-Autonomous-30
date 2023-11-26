@@ -18,6 +18,12 @@ This is the repository for project Grand Theft Automation @ MEAM5100 UPenn
 
   <img width="400" alt="image" src="https://github.com/jbwenjoy/Grand-Theft-Automation-G30/assets/71893666/b516f552-dff8-4763-824a-828799c525d0">
 
+## Motor
+
+  <img width="500" alt="image" src="https://github.com/jbwenjoy/Grand-Theft-Automation-G30/assets/71893666/26b69153-a4a2-46c7-958b-7568aa6c0c8d">
+
+  减速比46.8
+
 
 ## Bill of Materials:
 
