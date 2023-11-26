@@ -20,9 +20,11 @@ This is the repository for project Grand Theft Automation @ MEAM5100 UPenn
 
 ## Motor
 
+* 选取的型号对应12V 130RPM，减速比46.8，电机编码器在电机转一圈输出11个脉冲，因此小车车轮转一圈应输出514.8个脉冲。
+
   <img width="500" alt="image" src="https://github.com/jbwenjoy/Grand-Theft-Automation-G30/assets/71893666/26b69153-a4a2-46c7-958b-7568aa6c0c8d">
 
-  选取的型号对应12V 130RPM，减速比46.8，电机编码器在电机转一圈输出11个脉冲，因此小车车轮转一圈应输出514.8个脉冲。
+
 
 
 ## Bill of Materials:
