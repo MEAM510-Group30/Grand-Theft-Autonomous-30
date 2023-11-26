@@ -1,4 +1,6 @@
 #include "c3_sensors.h"
+
+// include files for i2c
 #include <stdio.h>
 #include "esp_log.h"
 #include "driver/i2c.h"
