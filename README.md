@@ -12,7 +12,7 @@ This is the repository for project Grand Theft Automation @ MEAM5100 UPenn
 
 * ESP32-S2-DEVKitC-1 Pin
 
-* Link to documentation: https://www.espressif.com/sites/default/files/documentation/esp32-s2-solo-2_esp32-s2-solo-2u_datasheet_en.pdf
+  Link to documentation: https://www.espressif.com/sites/default/files/documentation/esp32-s2-solo-2_esp32-s2-solo-2u_datasheet_en.pdf
 
   <img width="800" alt="image" src="https://github.com/jbwenjoy/Grand-Theft-Automation-G30/assets/71893666/9d713e5b-7890-40bb-a886-27ce3012f511">
 
