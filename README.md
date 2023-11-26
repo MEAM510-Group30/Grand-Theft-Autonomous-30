@@ -12,11 +12,12 @@ This is the repository for project Grand Theft Automation @ MEAM5100 UPenn
 
 * ESP32-S2-DEVKitC-1 Pin
 
-  <img width="803" alt="image" src="https://github.com/jbwenjoy/Grand-Theft-Automation-G30/assets/71893666/9d713e5b-7890-40bb-a886-27ce3012f511">
+  <img width="600" alt="image" src="https://github.com/jbwenjoy/Grand-Theft-Automation-G30/assets/71893666/9d713e5b-7890-40bb-a886-27ce3012f511">
 
 * ESP32-C3 Pin
 
-  ![image](https://github.com/jbwenjoy/Grand-Theft-Automation-G30/assets/71893666/4479d169-6d51-4b19-a776-3f102247f42f)
+  <img width="400" alt="image" src="https://github.com/jbwenjoy/Grand-Theft-Automation-G30/assets/71893666/b516f552-dff8-4763-824a-828799c525d0">
+
 
 ## Bill of Materials:
 
