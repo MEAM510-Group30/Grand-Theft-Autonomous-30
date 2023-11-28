@@ -4,21 +4,17 @@ This is the repository for project Grand Theft Automation @ MEAM5100 UPenn
 ## Pin Assignment
 
 * 2 motor encoders, 2 each, 4 total
-* 2 motor drivers, 2 each, 4 total
-* 2 servos, 1 each, 2 total
+* 2 motor drivers, 1 PWM each, 2 direction pin each, 6 total
+* 2 servos, 1 PWM pin each, 2 total
 * 2 vive phototransistors, 1 each, 2 total
-* 3 sonars, 2 each, 6 total
-* $>= 2$ photosensors, 1 each, >= 2 total
+* 2 ToF sensors, 2 I2C total
+* 2 IR photosensors, 1 each, 2 total
 
-* ESP32-S2-DEVKitC-1 Pin
+* ESP32-S2-DEVKitC-1 and ESP32-C3 Pins
 
   Link to documentation: https://www.espressif.com/sites/default/files/documentation/esp32-s2-solo-2_esp32-s2-solo-2u_datasheet_en.pdf
 
-  <img width="800" alt="image" src="https://github.com/jbwenjoy/Grand-Theft-Automation-G30/assets/71893666/9d713e5b-7890-40bb-a886-27ce3012f511">
-
-* ESP32-C3 Pin
-
-  <img width="400" alt="image" src="https://github.com/jbwenjoy/Grand-Theft-Automation-G30/assets/71893666/b516f552-dff8-4763-824a-828799c525d0">
+  <img width="800" alt="image" src="https://github.com/jbwenjoy/Grand-Theft-Automation-G30/assets/71893666/8c3ced1a-d0aa-4083-8650-6e114b1d28d7">
 
 ## Motor
 
