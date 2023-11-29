@@ -5,8 +5,8 @@
 #ifndef S2_SENSORS_H
 #define S2_SENSORS_H
 
-#include "encoder.h"
-#include "vive.h"
+#include "s2_sensors_encoder.h"
+#include "s2_sensors_vive.h"
 
 
 

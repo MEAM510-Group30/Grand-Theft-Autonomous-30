@@ -16,15 +16,15 @@
 #ifndef ACTIONS_H
 #define ACTIONS_H
 
-#include "motor.h"
-#include "servo.h"
+#include "actions_motor.h"
+#include "actions_servo.h"
 
 class Actions
 {
 public:
     // Motor pins
-    int MOTOR_L_PWM = 43;
-    int MOTOR_R_PWM = 44;
+    int MOTOR_L_PWM = 0;
+    int MOTOR_R_PWM = 1;
     int MOTOR_L_DIR1 = 35;
     int MOTOR_L_DIR2 = 36;
     int MOTOR_R_DIR1 = 37;
