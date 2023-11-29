@@ -34,4 +34,5 @@ void setup() {
 void loop() {
     // put your main code here, to run repeatedly:
     actions.MOTOR_L.setSpeed(2000);
+    delay(200);
 }
