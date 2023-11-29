@@ -1,7 +1,10 @@
 /*
-    Author: 
+    Authors: 
+        
         @jbwenjoy: Furina de Fontaine
+    
     Description:
+        
         This file defines functions for motor control.
 */
 

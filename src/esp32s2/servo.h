@@ -1,8 +1,12 @@
 /*
-    Author:
+    Authors:
+        
         @jbwenjoy: Furina de Fontaine
+    
     Description:
+        
         This file defines the class for servo settings and control
+        
 */
 
 #ifndef SERVO_H
