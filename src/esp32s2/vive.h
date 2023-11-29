@@ -9,8 +9,8 @@
 */
 
 
-#ifndef S2_SENSORS_H
-#define S2_SENSORS_H
+#ifndef VIVE_H
+#define VIVE_H
 
 
 
