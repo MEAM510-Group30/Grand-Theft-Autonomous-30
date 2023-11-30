@@ -7,6 +7,9 @@
 #include "html510.h"
 class web_commun
 {
+    Actions action;
+    int speed = 0;
+
     web_commun(IPAddress local_IP, const char *ssid = "Furina", const char *pwd = "Furinaaa") :
     {
         // our own IP address is local_IP above
@@ -27,17 +30,25 @@ class web_commun
         html_server.attachHandler("/autopilot_off", handleAutopilotOff);
         html_server.attachHandler("/speed_slider=", handleSpeed);
         html_server.attachHandler("/turn_rate_slider=", handleTurnRate);
-        html_server.attachHandler("/F", handleForward);
-        html_server.attachHandler("/B", handleBackward);
-        html_server.attachHandler("/L", handleForwardLeft);
-        html_server.attachHandler("/R", handleForwardRight);
-        html_server.attachHandler("/O", handleStop);
-        html_server.attachHandler("/S", handleStop);
+        html_server.attachHandler("/F", action.moveForward(speed));
+        html_server.attachHandler("/B", action.moveBackward(speed));
+        html_server.attachHandler("/L", action.turnLeft(speed, turnRate));
+        html_server.attachHandler("/R", action.turnRight(speed, turnRate));
+        html_server.attachHandler("/O", action.stop());
+        html_server.attachHandler("/S", action.stop());
         html_server.attachHandler("/+", handleSpeedUp);
         html_server.attachHandler("/-", handleSlowDown);
     }
 
     ~web_commun() {}
+
+    void handleSpeedUp(){
+        action.speed += 500;
+    }
+
+    void handleSlowDown(){
+        action.speed -= 500;
+    }
 }
 
 #endif
