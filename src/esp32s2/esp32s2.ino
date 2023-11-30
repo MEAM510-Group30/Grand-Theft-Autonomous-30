@@ -25,8 +25,6 @@
 #include "communication.h"
 
 #include "s2_sensors.h"
-#include "s2_sensors_encoder.h"
-#include "s2_sensors_vive.h"
 
 #include "actions.h"
 #include "actions_motor.h"
@@ -37,6 +35,10 @@
 // pin definitions, ledc pwm parameters, two motor and two servo objects, 
 // and basic actions of specifying motor speeds and servo angles
 Actions actions = Actions();
+
+// sensors is a global variable containing:
+// pin definitions, encoder and vive objects, and sensor readings
+Sensors sensors = Sensors();
 
 void setup() {
     Serial.begin(115200);

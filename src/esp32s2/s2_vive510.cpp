@@ -170,7 +170,7 @@ uint32_t Vive510::sync(int reps)
 
     while (millis() - startms < (reps + 1) * 1000 / 120)
     {
-        // count  pulses
+        // count pulses
         if (m_lastFalling != m_usFalling)
         {
             m_lastFalling = m_usFalling;
