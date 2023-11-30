@@ -14,7 +14,8 @@ This is the repository for project Grand Theft Automation @ MEAM5100 UPenn
 
   Link to documentation: https://www.espressif.com/sites/default/files/documentation/esp32-s2-solo-2_esp32-s2-solo-2u_datasheet_en.pdf
 
-  <img width="800" alt="image" src="https://github.com/jbwenjoy/Grand-Theft-Automation-G30/assets/71893666/8c3ced1a-d0aa-4083-8650-6e114b1d28d7">
+  <img width="800" alt="image" src="https://github.com/jbwenjoy/Grand-Theft-Automation-G30/assets/71893666/70c22510-d1ad-48fb-84ab-99088045204a">
+
 
 ## Motor
 
