@@ -1,13 +1,18 @@
 /*
-    This is the combination of encoder class and vive class
-    Note that the library ESP32Encoder (https://www.arduino.cc/reference/en/libraries/esp32encoder/) should be installed
-
+    Authors: 
+    
+        @jbwenjoy: Furina de Fontaine
+    
+    Description:
+    
+        This is the combination of encoder class and vive class
+        Note that the library ESP32Encoder v0.8.0 (https://www.arduino.cc/reference/en/libraries/esp32encoder/) should be installed, higher version may not work
 */
 
 #ifndef S2_SENSORS_H
 #define S2_SENSORS_H
 
-#include <ESP32Encoder.h> // https://www.arduino.cc/reference/en/libraries/esp32encoder/
+#include <ESP32Encoder.h> // https://www.arduino.cc/reference/en/libraries/esp32encoder/ v0.8.0
 #include "s2_vive510.h"   // provided on canvas
 
 class Sensors
