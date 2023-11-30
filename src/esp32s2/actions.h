@@ -19,7 +19,25 @@
 #include "actions_motor.h"
 #include "actions_servo.h"
 
-class Actions
+
+enum MoveActionMode
+{
+    STOP,
+    MOVE_FORWARD,
+    MOVE_BACKWARD,
+    TURN_LEFT,
+    TURN_RIGHT
+};
+
+enum JawActionMode
+{
+    JAW_HOLD,  // keep the jaw at the current position
+    JAW_GRAB,  // grab the trophy
+    JAW_RELEASE  // release the trophy
+};
+
+
+class Actions  // all variables and functions are public
 {
 public:
     // Motor pins
@@ -45,6 +63,20 @@ public:
     int LEDC_RES = ((1 << LEDC_RES_BITS) - 1);
     int LEDC_FREQ = 5000;
 
+    // Status variables
+    // These variables can be modified by the website (manual mode) and the behavior tree
+    MoveActionMode moveActionMode;
+    JawActionMode jawActionMode;
+    // When using PID, the controller should read these two variables and calculate desired speed for left and right wheels
+    int speed;
+    int turnRate;
+    // When using PID, the controller should modify these two variables
+    int desSpeedL;
+    int desSpeedR;
+    // For servos, open-loop
+    int servoAngleJaw;
+    int servoAngleIR;
+
     // Motor class
     Motor MOTOR_L;// = Motor(MOTOR_L_PWM, MOTOR_L_DIR1, MOTOR_L_DIR2, LEDC_CHA_0, LEDC_RES_BITS, LEDC_FREQ);
     Motor MOTOR_R;// = Motor(MOTOR_R_PWM, MOTOR_R_DIR1, MOTOR_R_DIR2, LEDC_CHA_1, LEDC_RES_BITS, LEDC_FREQ);
@@ -53,14 +85,22 @@ public:
     Servo SERVO_JAW;// = Servo(180, SERVO_JAW_PWM, LEDC_CHA_2, LEDC_RES_BITS, LEDC_FREQ);
     Servo SERVO_IR;// = Servo(180, SERVO_IR_PWM, LEDC_CHA_3, LEDC_RES_BITS, LEDC_FREQ);
 
-    // Constructor, copy constructor and destructor
+    // Constructor with initialization list
     Actions() :
         MOTOR_L(MOTOR_L_PWM, MOTOR_L_DIR1, MOTOR_L_DIR2, LEDC_CHA_0, LEDC_RES_BITS, LEDC_FREQ),
         MOTOR_R(MOTOR_R_PWM, MOTOR_R_DIR1, MOTOR_R_DIR2, LEDC_CHA_1, LEDC_RES_BITS, LEDC_FREQ),
         SERVO_JAW(180, SERVO_JAW_PWM, LEDC_CHA_2, LEDC_RES_BITS, LEDC_FREQ),
-        SERVO_IR(180, SERVO_IR_PWM, LEDC_CHA_3, LEDC_RES_BITS, LEDC_FREQ)
+        SERVO_IR(180, SERVO_IR_PWM, LEDC_CHA_3, LEDC_RES_BITS, LEDC_FREQ),
+        moveActionMode(STOP),
+        jawActionMode(JAW_HOLD),
+        speed(0),
+        turnRate(50),
+        desSpeedL(0),
+        desSpeedR(0),
+        servoAngleJaw(0),
+        servoAngleIR(0)
     {}
-
+    // Copy constructor and destructor
     Actions(const Actions& old) = default;
     ~Actions() = default;
 
@@ -87,12 +127,24 @@ public:
         setMotorSpeed(MOTOR_R, 0);
     }
 
-    void moveForward(int speed)
+    void move()  // move according to specified left and right wheel speed
+    {
+        setMotorSpeed(MOTOR_L, desSpeedL);
+        setMotorSpeed(MOTOR_R, desSpeedR);
+    }
+
+    void moveForward(int speed)  // with speed parameter
     {
         // speed itself can be positive or negative
         // here we want the car go forward regardless of the +/- sign of speed
         setMotorSpeed(MOTOR_L, abs(speed));
         setMotorSpeed(MOTOR_R, abs(speed));
+    }
+
+    void moveForward()  // overload without speed parameter
+    {
+        setMotorSpeed(MOTOR_L, abs(desSpeedL));
+        setMotorSpeed(MOTOR_R, abs(desSpeedR));
     }
 
     void moveBackward(int speed)
@@ -101,6 +153,12 @@ public:
         // here we want the car go backward regardless of the +/- sign of speed
         setMotorSpeed(MOTOR_L, -abs(speed));
         setMotorSpeed(MOTOR_R, -abs(speed));
+    }
+
+    void moveBackward()  // overload without speed parameter
+    {
+        setMotorSpeed(MOTOR_L, -abs(desSpeedL));
+        setMotorSpeed(MOTOR_R, -abs(desSpeedR));
     }
 
     void turnLeft(int speed, int turnRate)
@@ -141,6 +199,16 @@ public:
         }
         setMotorSpeed(MOTOR_L, speedL);
         setMotorSpeed(MOTOR_R, speedR);
+    }
+
+    void grabTrophy()
+    {
+        setServoAngle(SERVO_JAW, 90);
+    }
+
+    void releaseTrophy()
+    {
+        setServoAngle(SERVO_JAW, 0);
     }
 
 };

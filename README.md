@@ -22,13 +22,18 @@ This is the repository for project Grand Theft Automation @ MEAM5100 UPenn
 
   <img width="500" alt="image" src="https://github.com/jbwenjoy/Grand-Theft-Automation-G30/assets/71893666/26b69153-a4a2-46c7-958b-7568aa6c0c8d">
 
-
-
-
 ## Bill of Materials:
 
-  https://docs.google.com/spreadsheets/d/1sigmSafWP6qNnaDdqdoLOz4CRqCdhQDDr3Bc3lbWQeE/edit#gid=943090944
+* Link to Google Docs: https://docs.google.com/spreadsheets/d/1sigmSafWP6qNnaDdqdoLOz4CRqCdhQDDr3Bc3lbWQeE/edit#gid=943090944
 
 ## Software Architecture:
 
   <img width="600" alt="image" src="https://github.com/jbwenjoy/Grand-Theft-Automation-G30/assets/71893666/cf41ee0e-bd3c-4022-845d-8e9b1f287d1c">
+
+## Libraries:
+
+* ESP32Encoder library: https://www.arduino.cc/reference/en/libraries/esp32encoder/
+
+* Vive510 library: provided by Prof. Mark Yim
+
+* HTML510 library: provided by Prof. Mark Yim
