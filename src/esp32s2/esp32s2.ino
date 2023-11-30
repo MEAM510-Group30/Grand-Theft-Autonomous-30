@@ -46,11 +46,11 @@ void setup() {
 }
 
 void loop() {
-    // // ### Motor Test Code ###
-    // // should always be commented when not testing
-    // // should comment all other code when testing
-    // actions.MOTOR_L.setSpeed(2000);
-    // delay(200);
+    // ### Motor Test Code ###
+    // should always be commented when not testing
+    // should comment all other code when testing
+    actions.MOTOR_L.setSpeed(2000);
+    delay(200);
 
     // ### Main Code ###
     // should comment all other test code when using

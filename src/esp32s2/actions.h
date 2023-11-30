@@ -41,8 +41,8 @@ class Actions  // all variables and functions are public
 {
 public:
     // Motor pins
-    int MOTOR_L_PWM = 0;
-    int MOTOR_R_PWM = 1;
+    int MOTOR_L_PWM = 1;
+    int MOTOR_R_PWM = 2;
     int MOTOR_L_DIR1 = 35;
     int MOTOR_L_DIR2 = 36;
     int MOTOR_R_DIR1 = 37;
