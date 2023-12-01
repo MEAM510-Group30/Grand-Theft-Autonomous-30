@@ -55,9 +55,9 @@ void loop() {
 
     sensors.updateEncoder();
     Serial.print('\n');
-    Serial.print(sensors.encoder_L_val);
+    Serial.print(sensors.speed_L);
     Serial.print('\t');
-    Serial.print(sensors.encoder_R_val);
+    Serial.print(sensors.speed_R);
 
     // actions.moveBackward(-2000);
     
