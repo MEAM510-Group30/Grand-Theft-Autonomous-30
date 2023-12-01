@@ -131,12 +131,19 @@ public:
     {
         updateVive();
         // TODO: calculate vive orientation
+        // Here we assume that the two vive sensors are symmetricly located on the left and right side of the robot
+        // So when we select x+ axis as 0 degree, the heading of the robot is 
     }
 
     void calculateVivePosition()
     {
         updateVive();
+        
         // TODO: calculate vive position
+        // Here we assume that the two vive sensors are symmetricly located on the left and right side of the robot
+        // So the center of the robot is the midpoint of the two vive sensors
+        vive_x = (vive1_x + vive2_x) / 2;
+        vive_y = (vive1_y + vive2_y) / 2;
     }
 
     bool atDesiredOrientation(float desired_theta)  // alsolute angle from vive, currently unable to deal with overshot

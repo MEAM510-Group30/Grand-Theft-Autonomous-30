@@ -54,6 +54,7 @@ void loop() {
     // actions.setMotorSpeed(actions.MOTOR_L, 3000);  // left wheel
 
     sensors.updateEncoder();
+    actions.updateActualSpeed(sensors.speed_L, sensors.speed_R);
     Serial.print('\n');
     Serial.print(sensors.speed_L);
     Serial.print('\t');

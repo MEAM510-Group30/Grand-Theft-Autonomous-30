@@ -90,12 +90,24 @@ public:
     Servo SERVO_JAW;// = Servo(180, SERVO_JAW_PWM, LEDC_CHA_2, LEDC_RES_BITS, LEDC_FREQ);
     Servo SERVO_IR;// = Servo(180, SERVO_IR_PWM, LEDC_CHA_3, LEDC_RES_BITS, LEDC_FREQ);
 
+    // PID class
+    PIDController PID_L;// = PIDController(2.0, 0.3, 0.001);
+    PIDController PID_R;// = PIDController(2.0, 0.3, 0.001);
+
+    // Actual speedL/R in mm/s, this should be updated by main in every loop
+    float ACTUAL_SPEED_L;
+    float ACTUAL_SPEED_R;
+
     // Constructor with initialization list
     Actions() :
         MOTOR_L(MOTOR_L_PWM, MOTOR_L_DIR1, MOTOR_L_DIR2, LEDC_CHA_0, LEDC_RES_BITS, LEDC_FREQ),
         MOTOR_R(MOTOR_R_PWM, MOTOR_R_DIR1, MOTOR_R_DIR2, LEDC_CHA_1, LEDC_RES_BITS, LEDC_FREQ),
         SERVO_JAW(180, SERVO_JAW_PWM, LEDC_CHA_2, LEDC_RES_BITS, LEDC_FREQ),
         SERVO_IR(180, SERVO_IR_PWM, LEDC_CHA_3, LEDC_RES_BITS, LEDC_FREQ),
+        PID_L(2.0, 0.3, 0.001),
+        PID_R(2.0, 0.3, 0.001),
+        ACTUAL_SPEED_L(0),
+        ACTUAL_SPEED_R(0),
         moveActionMode(STOP),
         jawActionMode(JAW_HOLD),
         speed(0),
@@ -133,7 +145,7 @@ public:
         SERVO.setAngle(angle);
     }
     
-    // --- Upper-layer actions ---
+    // --- Upper-layer motor actions ---
     
     void stop()
     {
@@ -254,6 +266,35 @@ public:
         setMotorSpeed(MOTOR_R, -abs(desSpeedR));
         moveActionMode = SAME_PLACE_RIGHT;
     }
+
+    void updateActualSpeed(float speed_L, float speed_R)
+    {
+        ACTUAL_SPEED_L = speed_L;
+        ACTUAL_SPEED_R = speed_R;
+    }
+
+    void PIDSpeedCalibration()  // This function generates the des speed for left and right wheels in duty cycles
+    {
+        // This function reads the movement status, the speed, and the turn rate, and calculates the desired speed for left and right wheels
+        // The desired speed is stored in desSpeedL and desSpeedR
+        // This function should be called after calculating desSpeedL/R and before setMotorSpeed in all moving functions
+
+        // First we need to know the map between the actual speed in mm/s and the duty cycle
+        // During no-load test, when duty cycle is set to 3000/4095, the actual speed for left wheel is 325mm/s and right wheel 314mm/s
+        // Considering the friction, we can assume that the actual speed in mm/s is 0.08 times the duty cycle
+        float desSpeedL_mm_s = (float) desSpeedL * 0.08;
+        float desSpeedR_mm_s = (float) desSpeedR * 0.08;
+
+        desSpeedL = PID_L.PID(desSpeedL_mm_s, ACTUAL_SPEED_L);
+        desSpeedR = PID_R.PID(desSpeedR_mm_s, ACTUAL_SPEED_R);
+
+
+
+        
+    }
+
+
+    // --- Jaw actions ---
 
     void grabTrophy()
     {
