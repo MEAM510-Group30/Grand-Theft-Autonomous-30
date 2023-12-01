@@ -21,8 +21,8 @@ public:
     // Encoder pins, have been checked to match our hardware
     int ENCODER_R_A = 5;
     int ENCODER_R_B = 6;
-    int ENCODER_L_A = 4;
-    int ENCODER_L_B = 7;
+    int ENCODER_L_A = 7;
+    int ENCODER_L_B = 4;
 
     // Vive pin
     int VIVE_PIN_1 = 8;
@@ -38,8 +38,8 @@ public:
 
     // Encoder values
     int ONE_ROUND = 988;  // encoder value when the wheel goes 1 round
-    int WHEEL_PERIMETER = 205;  // mm
-    int DIST_PER_COUNT = WHEEL_PERIMETER / ONE_ROUND;  // mm/count
+    float WHEEL_PERIMETER = 205;  // mm
+    float DIST_PER_COUNT = WHEEL_PERIMETER / (float) ONE_ROUND;  // 0.2075 mm/count
     long encoder_L_val;
     long encoder_R_val;
     long encoder_L_val_previous;
@@ -48,8 +48,8 @@ public:
     unsigned long encoder_time_previous;  // ms
     float speed_L;  // mm/s
     float speed_R;  // mm/s
-    float count_speed_L;  // encoder value per ms
-    float count_speed_R;  // encoder value per ms
+    float count_speed_L;  // counts per ms
+    float count_speed_R;  // counts per ms
 
     // Vive values
     int vive1_x;
@@ -91,8 +91,8 @@ public:
         encoder_R_val = encoder_R.getCount() / 2;
         count_speed_L = (float)(encoder_L_val - encoder_L_val_previous) / (float)(encoder_time_current - encoder_time_previous);
         count_speed_R = (float)(encoder_R_val - encoder_R_val_previous) / (float)(encoder_time_current - encoder_time_previous);
-        speed_L = count_speed_L * DIST_PER_COUNT;
-        speed_R = count_speed_R * DIST_PER_COUNT;
+        speed_L = count_speed_L * DIST_PER_COUNT * 1000;
+        speed_R = count_speed_R * DIST_PER_COUNT * 1000;
     }
 
     void updateVive()  // should be called in main loop before using vive values every time
