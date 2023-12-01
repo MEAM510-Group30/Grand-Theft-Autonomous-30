@@ -41,6 +41,8 @@ public:
         LEDC_RES_BITS = ledc_res_bits;
         LEDC_RES = ((1 << LEDC_RES_BITS) - 1);
         LEDC_FREQ = ledc_freq;
+        ledcSetup(LEDC_CHANNEL, LEDC_FREQ, LEDC_RES_BITS);
+        ledcAttachPin(SERVO_PWM, LEDC_CHANNEL);
     }
 
     // Copy constructor
@@ -52,6 +54,8 @@ public:
         LEDC_RES_BITS = old.LEDC_RES_BITS;
         LEDC_RES = old.LEDC_RES;
         LEDC_FREQ = old.LEDC_FREQ;
+        ledcSetup(LEDC_CHANNEL, LEDC_FREQ, LEDC_RES_BITS);
+        ledcAttachPin(SERVO_PWM, LEDC_CHANNEL);
     }
 
     // Destructor

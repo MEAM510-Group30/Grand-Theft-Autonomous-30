@@ -22,7 +22,7 @@
 
 #include "control.h"
 
-#include "communication.h"
+// #include "communication.h"
 
 #include "s2_sensors.h"
 
@@ -42,14 +42,35 @@ Sensors sensors = Sensors();
 
 void setup() {
     Serial.begin(115200);
-
 }
 
 void loop() {
     // ### Motor Test Code ###
     // should always be commented when not testing
     // should comment all other code when testing
-    actions.MOTOR_L.setSpeed(2000);
+    
+    // actions.moveForward(2000);
+    // actions.setMotorSpeed(actions.MOTOR_R, 3000);  // right wheel
+    // actions.setMotorSpeed(actions.MOTOR_L, 3000);  // left wheel
+
+    sensors.updateEncoder();
+    Serial.print('\n');
+    Serial.print(sensors.speed_L);
+    Serial.print('\t');
+    Serial.print(sensors.speed_R);
+
+    // actions.moveBackward(-2000);
+    
+    // sensors.updateVive();
+    // Serial.print('\n');
+    // Serial.print(sensors.vive1_x);
+    // Serial.print('\t');
+    // Serial.print(sensors.vive1_y);
+    // Serial.print('\t');
+    // Serial.print(sensors.vive2_x);
+    // Serial.print('\t');
+    // Serial.print(sensors.vive2_y);
+
     delay(200);
 
     // ### Main Code ###
