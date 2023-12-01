@@ -257,6 +257,7 @@ class I2C_commun()
 #define ACK_CHECK_DIS 0x0          /*!< I2C master will not check ack from slave */
 #define ACK_VAL I2C_MASTER_ACK     /*!< I2C ack value */
 #define NACK_VAL I2C_MASTER_NACK   /*!< I2C nack value */
+uint8_t data_rd[DATA_LENGTH];
 
     I2C_commun()
     {
@@ -298,9 +299,6 @@ class I2C_commun()
         return ret;
     }
 
-    /**
-     * @brief i2c master initialization
-     */
     static esp_err_t i2c_master_init()
     {
         i2c_port_t i2c_master_port = I2C_NUM_0;
