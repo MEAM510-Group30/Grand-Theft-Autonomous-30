@@ -78,11 +78,11 @@
     <h2>Mode</h2>
     <div style="text-align: center">
       <button
-        id="competition_mode_button"
+        id="trophy_moving_mode_button"
         class="button"
-        onclick="activateModeButtons('competition_mode_button')"
+        onclick="activateModeButtons('trophy_moving_mode_button')"
       >
-        Competition
+        Trophy Moving
       </button>
       <button
         id="fully_manual_mode_button"
@@ -259,6 +259,44 @@
         }
       }
 
+      function activateModeButtons(buttonId) {
+        // get the button element by id
+        var trophy_moving_mode_button = document.getElementById("trophy_moving_mode_button");
+        var fully_manual_mode_button = document.getElementById("fully_manual_mode_button");
+        var wall_following_mode_button = document.getElementById("wall_following_mode_button");
+        var car_pushing_mode_button = document.getElementById("car_pushing_mode_button");
+
+        removeAllActiveModeButtons(); // remove all active class from the buttons
+
+        if (buttonId == "trophy_moving_mode_button") {
+          trophy_moving_mode_button.classList.add("active"); // add active class to the button
+          var xhttp = new XMLHttpRequest();
+          xhttp.open("GET", "tro", true);
+          xhttp.send();
+        }
+
+        if (buttonId == "fully_manual_mode_button") {
+          fully_manual_mode_button.classList.add("active");
+          var xhttp = new XMLHttpRequest();
+          xhttp.open("GET", "man", true);
+          xhttp.send();
+        }
+
+        if (buttonId == "wall_following_mode_button") {
+          wall_following_mode_button.classList.add("active");
+          var xhttp = new XMLHttpRequest();
+          xhttp.open("GET", "wall", true);
+          xhttp.send();
+        }
+
+        if (buttonId == "car_pushing_mode_button") {
+          car_pushing_mode_button.classList.add("active");
+          var xhttp = new XMLHttpRequest();
+          xhttp.open("GET", "car", true);
+          xhttp.send();
+        }
+      }
+
       function removeAllActiveDirectionButtons() {
         var forward_button = document.getElementById("forward_button");
         var backward_button = document.getElementById("backward_button");
@@ -271,6 +309,18 @@
         left_button.classList.remove("active");
         right_button.classList.remove("active");
         stop_button.classList.remove("active");
+      }
+
+      function removeAllActiveModeButtons() {
+        var trophy_moving_mode_button = document.getElementById("trophy_moving_mode_button");
+        var fully_manual_mode_button = document.getElementById("fully_manual_mode_button");
+        var wall_following_mode_button = document.getElementById("wall_following_mode_button");
+        var car_pushing_mode_button = document.getElementById("car_pushing_mode_button");
+
+        trophy_moving_mode_button.classList.remove("active");
+        fully_manual_mode_button.classList.remove("active");
+        wall_following_mode_button.classList.remove("active");
+        car_pushing_mode_button.classList.remove("active");
       }
 
       function speedup() {
