@@ -49,7 +49,7 @@ void loop() {
     // should always be commented when not testing
     // should comment all other code when testing
     
-    // actions.moveForward(2000);
+    actions.moveForward(1000);
     // actions.setMotorSpeed(actions.MOTOR_R, 3000);  // right wheel
     // actions.setMotorSpeed(actions.MOTOR_L, 3000);  // left wheel
 
