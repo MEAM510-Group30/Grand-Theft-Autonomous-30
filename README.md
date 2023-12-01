@@ -1,6 +1,18 @@
 # Grand-Theft-Automation-G30
 This is the repository for project Grand Theft Automation @ MEAM5100 UPenn
 
+## Software Architecture:
+
+  <img width="600" alt="image" src="https://github.com/jbwenjoy/Grand-Theft-Automation-G30/assets/71893666/cf41ee0e-bd3c-4022-845d-8e9b1f287d1c">
+
+## Libraries:
+
+* ESP32Encoder library **v0.8.0 for ESP32-S2**: https://www.arduino.cc/reference/en/libraries/esp32encoder/
+
+* Vive510 library: provided by Prof. Mark Yim
+
+* HTML510 library: provided by Prof. Mark Yim
+
 ## Pin Assignment
 
 * 2 motor encoders, 2 each, 4 total
@@ -29,14 +41,3 @@ This is the repository for project Grand Theft Automation @ MEAM5100 UPenn
 
 * Link to Google Docs: https://docs.google.com/spreadsheets/d/1sigmSafWP6qNnaDdqdoLOz4CRqCdhQDDr3Bc3lbWQeE/edit#gid=943090944
 
-## Software Architecture:
-
-  <img width="600" alt="image" src="https://github.com/jbwenjoy/Grand-Theft-Automation-G30/assets/71893666/cf41ee0e-bd3c-4022-845d-8e9b1f287d1c">
-
-## Libraries:
-
-* ESP32Encoder library: https://www.arduino.cc/reference/en/libraries/esp32encoder/
-
-* Vive510 library: provided by Prof. Mark Yim
-
-* HTML510 library: provided by Prof. Mark Yim
