@@ -22,7 +22,7 @@
 
 #include "control.h"
 
-#include "communication.h"
+// #include "communication.h"
 
 #include "s2_sensors.h"
 
@@ -49,7 +49,16 @@ void loop() {
     // should always be commented when not testing
     // should comment all other code when testing
     
-    actions.moveForward(2000);
+    // actions.moveForward(2000);
+    // actions.setMotorSpeed(actions.MOTOR_R, 3000);  // right wheel
+    // actions.setMotorSpeed(actions.MOTOR_L, 3000);  // left wheel
+
+    sensors.updateEncoder();
+    Serial.print('\n');
+    Serial.print(sensors.encoder_L_val);
+    Serial.print('\t');
+    Serial.print(sensors.encoder_R_val);
+
     // actions.moveBackward(-2000);
     
     // sensors.updateVive();

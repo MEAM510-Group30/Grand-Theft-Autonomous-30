@@ -23,6 +23,8 @@ This is the repository for project Grand Theft Automation @ MEAM5100 UPenn
 
   <img width="500" alt="image" src="https://github.com/jbwenjoy/Grand-Theft-Automation-G30/assets/71893666/26b69153-a4a2-46c7-958b-7568aa6c0c8d">
 
+* 但实际测量使用ESP32Encoder v0.8.0 (https://www.arduino.cc/reference/en/libraries/esp32encoder/)的库时，似乎是一圈约987.5个脉冲，因此还是使用987.5
+
 ## Bill of Materials:
 
 * Link to Google Docs: https://docs.google.com/spreadsheets/d/1sigmSafWP6qNnaDdqdoLOz4CRqCdhQDDr3Bc3lbWQeE/edit#gid=943090944

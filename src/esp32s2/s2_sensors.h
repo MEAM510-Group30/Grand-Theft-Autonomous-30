@@ -18,11 +18,11 @@
 class Sensors
 {
 public:
-    // Encoder pins
+    // Encoder pins, have been checked to match our hardware
+    int ENCODER_R_A = 5;
+    int ENCODER_R_B = 6;
     int ENCODER_L_A = 4;
-    int ENCODER_L_B = 5;
-    int ENCODER_R_A = 6;
-    int ENCODER_R_B = 7;
+    int ENCODER_L_B = 7;
 
     // Vive pin
     int VIVE_PIN_1 = 8;
@@ -51,6 +51,7 @@ public:
                 encoder_L_val(0), encoder_R_val(0),
                 vive1_x(0), vive1_y(0), vive2_x(0), vive2_y(0)
     {
+        ESP32Encoder::useInternalWeakPullResistors = UP;
         encoder_L.attachFullQuad(ENCODER_L_A, ENCODER_L_B);
         encoder_R.attachFullQuad(ENCODER_R_A, ENCODER_R_B);
         vive1.begin();

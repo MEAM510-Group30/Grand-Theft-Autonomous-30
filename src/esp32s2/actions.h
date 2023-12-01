@@ -41,12 +41,12 @@ class Actions  // all variables and functions are public
 {
 public:
     // Motor pins
-    int MOTOR_L_PWM = 1;
-    int MOTOR_R_PWM = 2;
-    int MOTOR_L_DIR1 = 38;
-    int MOTOR_L_DIR2 = 35;
-    int MOTOR_R_DIR1 = 36;
-    int MOTOR_R_DIR2 = 37;
+    int MOTOR_R_PWM = 1;
+    int MOTOR_L_PWM = 2;
+    int MOTOR_R_DIR2 = 38;  // These ports have been fine-tuned for current hardware so that forward is forward, backward is backward.
+    int MOTOR_R_DIR1 = 35;
+    int MOTOR_L_DIR2 = 36;
+    int MOTOR_L_DIR1 = 37;
 
     // Servo pins
     int SERVO_JAW_PWM = 13;

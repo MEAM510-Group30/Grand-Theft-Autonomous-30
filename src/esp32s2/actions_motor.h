@@ -87,7 +87,7 @@ public:
             digitalWrite(MOTOR_DIR2, LOW);
         }
         ledcWrite(LEDC_CHANNEL, abs(speed));
-        Serial.println(speed);
+        // Serial.println(speed);
     }
 };
 
