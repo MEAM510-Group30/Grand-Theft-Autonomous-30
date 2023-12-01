@@ -7,7 +7,7 @@ This is the repository for project Grand Theft Automation @ MEAM5100 UPenn
 
 ## Libraries:
 
-* ESP32Encoder library: https://www.arduino.cc/reference/en/libraries/esp32encoder/
+* ESP32Encoder library **v0.8.0 for ESP32-S2**: https://www.arduino.cc/reference/en/libraries/esp32encoder/
 
 * Vive510 library: provided by Prof. Mark Yim
 
