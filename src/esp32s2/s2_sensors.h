@@ -57,6 +57,12 @@ public:
     int vive2_x;
     int vive2_y;
 
+    // position calculated from vive values
+    float vive_x;  // in mm
+    float vive_y;  // in mm
+    // orientation calculated from vive values
+    float vive_theta;  // in degrees
+
     // Constructor
     Sensors() : vive1(VIVE_PIN_1), vive2(VIVE_PIN_2),
                 encoder_L_val(0), encoder_R_val(0), 
@@ -120,5 +126,32 @@ public:
             vive2.sync(15);
         }
     }
+
+    void calculateViveOrientation()
+    {
+        updateVive();
+        // TODO: calculate vive orientation
+    }
+
+    void calculateVivePosition()
+    {
+        updateVive();
+        // TODO: calculate vive position
+    }
+
+    bool atDesiredOrientation(float desired_theta)  // currently 
+    {
+        calculateViveOrientation();
+        float threshold = 1.0;  // degree, to be tuned
+        return (abs(vive_theta - desired_theta) <= threshold);  // degree
+    }
+
+    bool atDesiredPosition(float desired_x, float desired_y)  // currently 
+    {
+        calculateVivePosition();
+        float threshold = 10.0;  // mm, to be tuned
+        return (abs(vive_x - desired_x) <= threshold) && (abs(vive_y - desired_y) <= threshold);  // mm
+    }
 };
+
 #endif

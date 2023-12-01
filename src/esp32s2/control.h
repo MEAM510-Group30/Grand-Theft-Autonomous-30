@@ -2,6 +2,8 @@
     Authors: 
 
         @YuruiWang821: Yurui
+
+        @jbwenjoy: Furina de Fontaine
     
     Description:
 
@@ -20,10 +22,10 @@
 #ifndef CONTROL_H
 #define CONTROL_H
 
-class PIDController
+class PIDController  // Note that all variables here are float
 {
 private:
-    // PID variables
+    // PID intermediate variables
     float error;
     float error_previous;
     float integral;
@@ -55,6 +57,12 @@ public:
         // Calculate error
         error = reference - actual;
 
+        // Intergral reset when error changes sign
+        if (error * error_previous < 0)
+        {
+            integral = 0;
+        }
+
         // Calculate integral
         integral += error;
 
@@ -62,7 +70,8 @@ public:
         derivative = error - error_previous;
 
         // Calculate output
-        output = kp * error + ki * integral + kd * derivative;
+        // output = kp * error + ki * integral + kd * derivative;
+        output = kp * error + ki * integral + constrain(kd * derivative, -0.1 * kp * error, 0.1 * kp * error);
 
         // Update error_previous
         error_previous = error;
@@ -73,13 +82,15 @@ public:
     // Control functions
     float positionControl(float reference, float actual)
     {
-
+        // TODO: Implement position control
+        ;
     }
 
 
     float velocityControl(float reference, float actual)
     {
-
+        // TODO: Implement velocity control
+        ;
     }
 
 
