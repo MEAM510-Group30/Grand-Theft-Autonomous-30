@@ -73,9 +73,9 @@ private:
         Actions wall_follow_action;
 
         if(TOFValue_Front <= dist_to_turn && !flag){
-
+            flag = true;
         }
-        if(finish_turn() && flag){  //define finish_turn() to return a flag when finish turning 90 degree
+        if(atDesAngel() && flag){  //define () to return a flag when finish turning
             flag = false;
         }
         if(flag){

@@ -33,15 +33,15 @@ class web_commun
         html_server.attachHandler("/", handleRoot);
         // html_server.attachHandler("/autopilot_on", handleAutopilotOn);
         // html_server.attachHandler("/autopilot_off", handleAutopilotOff);
-        html_server.attachHandler("/tro", behavior.trophyMoving());
-        html_server.attachHandler("/man", behavior.fullyManual());
-        html_server.attachHandler("/wall", behavior.wallFollowing());
-        html_server.attachHandler("/car", carPushing());
-        html_server.attachHandler("/F", action.moveForward(action.speed));
-        html_server.attachHandler("/B", action.moveBackward(action.speed));
-        html_server.attachHandler("/L", action.turnLeft(action.speed, action.turnRate));
-        html_server.attachHandler("/R", action.turnRight(action.speed, action.turnRate));
-        html_server.attachHandler("/O", action.stop());
+        html_server.attachHandler("/tro", handleTrophy);
+        html_server.attachHandler("/man", handleManual);
+        html_server.attachHandler("/wall", handleWall);
+        html_server.attachHandler("/car", handleCar);
+        html_server.attachHandler("/F", handleForward);
+        html_server.attachHandler("/B", handleBackward);
+        html_server.attachHandler("/L", handleLeft);
+        html_server.attachHandler("/R", handleRight);
+        html_server.attachHandler("/O", handleStop);
         html_server.attachHandler("/speed_slider=", handleSpeed);
         html_server.attachHandler("/turn_rate_slider=", handleTurnRate);
     }
@@ -53,10 +53,64 @@ class web_commun
         html_server.sendhtml(website);
     }
 
+    void handleTrophy()
+    {
+        esp_now_message.sendMessage();
+        behavior.trophyMoving();
+    }
+
+    void handleManual()
+    {
+        esp_now_message.sendMessage();
+        behavior.fullyManual();
+    }
+
+    void handleWall()
+    {
+        esp_now_message.sendMessage();
+        behavior.wallFollowing();
+    }
+
+    void handleCar()
+    {
+        behavior.carPushing();
+        esp_now_message.sendMessage();
+    }
+
+    void handleForward()
+    {
+        esp_now_message.sendMessage();
+        action.moveForward(action.speed);
+    }
+
     void handleSpeed()
     {
         esp_now_message.sendMessage();
         action.speed = html_server.getVal();
+    }
+
+    void handleBackward()
+    {
+        esp_now_message.sendMessage();
+        action.moveBackward(action.speed);
+    }
+
+    void handleLeft()
+    {
+        esp_now_message.sendMessage();
+        action.turnLeft(action.speed, action.turnRate);
+    }
+
+    void handleRight()
+    {
+        esp_now_message.sendMessage();
+        action.turnRight(action.speed, action.turnRate);
+    }
+
+    void handleStop()
+    {
+        esp_now_message.sendMessage();
+        action.stop();
     }
 
     void handleTurnRate()
