@@ -44,6 +44,8 @@
 #ifndef BEHAVIOR_H
 #define BEHAVIOR_H
 
+#include s2_sensors.h
+
 enum Mode
 {
     AUTO,
@@ -71,12 +73,15 @@ private:
         int TOFValue_left = getTOFValue_left();    //return the left TOF value
         int dist_to_turn = 15;  //the distance to turn at the corner
         Actions wall_follow_action;
+        Sensors sensor
+        float theta;    //to record present theta when finish turning
 
         if(TOFValue_Front <= dist_to_turn && !flag){
             flag = true;
         }
-        if(atDesAngel() && flag){  //define () to return a flag when finish turning
+        if(atDesiredOrientation(theta) && flag){  //define () to return a flag when finish turning
             flag = false;
+            theta = sensor.vive_theta;
         }
         if(flag){
             wall_follow_action.turnLeft90degree();
