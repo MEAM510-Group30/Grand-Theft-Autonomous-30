@@ -6,7 +6,7 @@
 #define C3_I2C_H
 
 // Include any necessary headers here
-class I2C_commun
+class I2C_slave_commun
 {
 #include <stdio.h>
 #include "esp_log.h"
@@ -22,14 +22,15 @@ class I2C_commun
 #define I2C_SLAVE_RX_BUF_LEN (2 * DATA_LENGTH) /*!< I2C slave rx buffer size */
 
 #define ESP_SLAVE_ADDR 0x28 /*!< ESP32 slave address, you can set any 7bit value */
+uint8_t data_rd[DATA_LENGTH];   //data_rd store the data read
 
-    I2C_commu()
+    I2C_slave_commu()
     {
         Serial.begin(115200); // put your setup code here, to run once:
         i2c_slave_init();
     }
 
-    ~I2C_commun(){}
+    ~I2C_slave_commun() {}
 
     static esp_err_t i2c_slave_init()
     {
@@ -46,6 +47,23 @@ class I2C_commun
         return i2c_driver_install(i2c_slave_port, conf_slave.mode,
                                   I2C_SLAVE_RX_BUF_LEN,
                                   I2C_SLAVE_TX_BUF_LEN, 0);
+    }
+
+    void I2C_slave_read()
+    {
+        if (i2c_slave_read_buffer(I2C_NUM_0, data_rd, RW_TEST_LENGTH, 0) > 0)
+        { // last term is timeout period, 0 means don't wait
+            Serial.printf("READ from master: %s\n", data_rd);
+            //                         I2Cport    buffer   length of data   max ticks to wait if buffer is full
+        }
+    }
+
+    void I2C_slave_write(uint8_t *data_wr)
+    {
+        if (i2c_slave_write_buffer(I2C_NUM_0, data_wr, RW_TEST_LENGTH, 10 / portTICK_RATE_MS))
+        {
+            Serial.printf("WRITE to master: %s\n", data_wr);
+        }
     }
 }
 
