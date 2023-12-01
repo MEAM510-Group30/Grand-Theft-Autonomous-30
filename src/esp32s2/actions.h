@@ -142,7 +142,7 @@ public:
         setMotorSpeed(MOTOR_R, desSpeedR);
     }
 
-    void moveForward(int speed)  // with speed parameter
+    void moveForward(int speed)  // with speed parameter, however, this function does not have feedback control, therefore shouldn't be used directly in checkoff
     {
         // speed itself can be positive or negative
         // here we want the car go forward regardless of the +/- sign of speed
@@ -156,7 +156,7 @@ public:
         setMotorSpeed(MOTOR_R, abs(desSpeedR));
     }
 
-    void moveBackward(int speed)
+    void moveBackward(int speed)  // with speed parameter, however, this function does not have feedback control, therefore shouldn't be used directly in checkoff
     {
         // speed itself can be positive or negative
         // here we want the car go backward regardless of the +/- sign of speed
@@ -208,6 +208,34 @@ public:
         }
         setMotorSpeed(MOTOR_L, speedL);
         setMotorSpeed(MOTOR_R, speedR);
+    }
+
+    void turnLeftSamePlace(int speed)  // turn left without moving forward or backward
+    {
+        // speed itself can be positive or negative
+        // here we want the car turn left regardless of the +/- sign of speed
+        setMotorSpeed(MOTOR_L, -abs(speed));
+        setMotorSpeed(MOTOR_R, abs(speed));
+    }
+
+    void turnLeftSamePlace()  // overload without speed parameter
+    {
+        setMotorSpeed(MOTOR_L, -abs(desSpeedL));
+        setMotorSpeed(MOTOR_R, abs(desSpeedR));
+    }
+
+    void turnRightSamePlace(int speed)  // turn right without moving forward or backward
+    {
+        // speed itself can be positive or negative
+        // here we want the car turn right regardless of the +/- sign of speed
+        setMotorSpeed(MOTOR_L, abs(speed));
+        setMotorSpeed(MOTOR_R, -abs(speed));
+    }
+
+    void turnRightSamePlace()  // overload without speed parameter
+    {
+        setMotorSpeed(MOTOR_L, abs(desSpeedL));
+        setMotorSpeed(MOTOR_R, -abs(desSpeedR));
     }
 
     void grabTrophy()
