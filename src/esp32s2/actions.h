@@ -287,10 +287,6 @@ public:
 
         desSpeedL = PID_L.PID(desSpeedL_mm_s, ACTUAL_SPEED_L);
         desSpeedR = PID_R.PID(desSpeedR_mm_s, ACTUAL_SPEED_R);
-
-
-
-        
     }
 
 

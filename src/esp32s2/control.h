@@ -31,6 +31,21 @@ private:
     float integral;
     float derivative;
 
+    float PIDSaturation(float PID_output, float upper_bound = 4095, float lower_bound = -4095)
+    {
+        // Saturation
+        if (PID_output > upper_bound)
+        {
+            PID_output = upper_bound;
+        }
+        else if (PID_output < lower_bound)
+        {
+            PID_output = lower_bound;
+        }
+
+        return PID_output;
+    }
+
 public:
     // PID parameters
     float kp;
@@ -75,6 +90,8 @@ public:
 
         // Update error_previous
         error_previous = error;
+
+        output = PIDSaturation(output);
 
         return output;
     }
