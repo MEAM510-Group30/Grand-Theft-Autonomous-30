@@ -40,6 +40,11 @@ public:
         LEDC_RES_BITS = ledc_res_bits;
         LEDC_RES = ((1 << LEDC_RES_BITS) - 1);
         LEDC_FREQ = ledc_freq;
+
+        ledcSetup(LEDC_CHANNEL, LEDC_FREQ, LEDC_RES_BITS);
+        ledcAttachPin(MOTOR_PWM, LEDC_CHANNEL);
+        pinMode(MOTOR_DIR1, OUTPUT);
+        pinMode(MOTOR_DIR2, OUTPUT);
     }
 
     // Copy constructor
@@ -52,6 +57,11 @@ public:
         LEDC_RES_BITS = old.LEDC_RES_BITS;
         LEDC_RES = old.LEDC_RES;
         LEDC_FREQ = old.LEDC_FREQ;
+
+        ledcSetup(LEDC_CHANNEL, LEDC_FREQ, LEDC_RES_BITS);
+        ledcAttachPin(MOTOR_PWM, LEDC_CHANNEL);
+        pinMode(MOTOR_DIR1, OUTPUT);
+        pinMode(MOTOR_DIR2, OUTPUT);
     }
 
     // Destructor
@@ -77,6 +87,7 @@ public:
             digitalWrite(MOTOR_DIR2, LOW);
         }
         ledcWrite(LEDC_CHANNEL, abs(speed));
+        Serial.println(speed);
     }
 };
 

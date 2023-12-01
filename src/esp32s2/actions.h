@@ -43,10 +43,10 @@ public:
     // Motor pins
     int MOTOR_L_PWM = 1;
     int MOTOR_R_PWM = 2;
-    int MOTOR_L_DIR1 = 35;
-    int MOTOR_L_DIR2 = 36;
-    int MOTOR_R_DIR1 = 37;
-    int MOTOR_R_DIR2 = 38;
+    int MOTOR_L_DIR1 = 38;
+    int MOTOR_L_DIR2 = 35;
+    int MOTOR_R_DIR1 = 36;
+    int MOTOR_R_DIR2 = 37;
 
     // Servo pins
     int SERVO_JAW_PWM = 13;
@@ -61,7 +61,7 @@ public:
     // PWM parameters
     int LEDC_RES_BITS = 12;
     int LEDC_RES = ((1 << LEDC_RES_BITS) - 1);
-    int LEDC_FREQ = 5000;
+    int LEDC_FREQ = 500;
 
     // Status variables
     // These variables can be modified by the website (manual mode) and the behavior tree
@@ -99,7 +99,16 @@ public:
         desSpeedR(0),
         servoAngleJaw(0),
         servoAngleIR(0)
-    {}
+    {
+        // ledcSetup(LEDC_CHA_0, LEDC_FREQ, LEDC_RES_BITS);
+        // ledcSetup(LEDC_CHA_1, LEDC_FREQ, LEDC_RES_BITS);
+        // ledcAttachPin(MOTOR_L_PWM, LEDC_CHA_0);
+        // ledcAttachPin(MOTOR_R_PWM, LEDC_CHA_1);
+        // ledcSetup(LEDC_CHA_2, LEDC_FREQ, LEDC_RES_BITS);
+        // ledcSetup(LEDC_CHA_3, LEDC_FREQ, LEDC_RES_BITS);
+        // ledcAttachPin(SERVO_JAW_PWM, LEDC_CHA_2);
+        // ledcAttachPin(SERVO_IR_PWM, LEDC_CHA_3);
+    }
     // Copy constructor and destructor
     Actions(const Actions& old) = default;
     ~Actions() = default;

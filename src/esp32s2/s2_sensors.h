@@ -72,6 +72,8 @@ public:
 
     void updateVive()  // should be called in main loop before using vive values every time
     {
+        Serial.print(vive1.status());
+        Serial.print('\t');
         if (vive1.status() == VIVE_RECEIVING)  // if vive receives signal
         {
             vive1_x = vive1.xCoord();
@@ -81,6 +83,8 @@ public:
         {
             vive1.sync(15);
         }
+        Serial.print(vive2.status());
+        Serial.print('\n');
         if (vive2.status() == VIVE_RECEIVING)
         {
             vive2_x = vive2.xCoord();
