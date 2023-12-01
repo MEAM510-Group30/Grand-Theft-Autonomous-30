@@ -66,6 +66,24 @@ private:
     void wallFollowing()
     {
         // Logic for wall-following mode
+        bool flag = false;
+        int TOFValue_Front = getTOFValue_Front();    //return the front TOF value
+        int TOFValue_left = getTOFValue_left();    //return the left TOF value
+        int dist_to_turn = 15;  //the distance to turn at the corner
+        Actions wall_follow_action;
+
+        if(TOFValue_Front <= dist_to_turn && !flag){
+
+        }
+        if(finish_turn() && flag){  //define finish_turn() to return a flag when finish turning 90 degree
+            flag = false;
+        }
+        if(flag){
+            wall_follow_action.turnLeft90degree();
+        }
+        if(!flag){
+            wall_follow_action.followWall();
+        }
     }
 
     void carPushing()
