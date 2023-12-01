@@ -13,6 +13,7 @@ class web_commun
 {
     Actions action;
     Behavior behavior;
+    esp_now esp_now_message;
 
     web_commun(IPAddress local_IP, const char *ssid = "Furina", const char *pwd = "Furinaaa") :
     {
@@ -54,11 +55,13 @@ class web_commun
 
     void handleSpeed()
     {
+        esp_now_message.sendMessage();
         action.speed = html_server.getVal();
     }
 
     void handleTurnRate()
     {
+        esp_now_message.sendMessage();
         action.turnRate = html_server.getVal();
     }
 }
@@ -127,7 +130,7 @@ class UDP_broadcast
 class esp_now()
 {
 #define CHANNEL 1                                     // channel can be 1 to 14, channel 0 means current channel.
-#define MAC_RECV {0x84, 0xF7, 0x03, 0xA8, 0xBE, 0x30} // receiver MAC address (last digit should be even for STA)
+#define MAC_RECV {0x84, 0xF7, 0x03, 0xA8, 0xBE, 0x30} // receiver MAC address
     uint8_t message;
 
     esp_now()
