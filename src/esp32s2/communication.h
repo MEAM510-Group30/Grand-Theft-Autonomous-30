@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <cstdint>
+#include <esp_now.h>
 #include "website.h"
 #include "html510.h"
 #include "s2_vive510.h"
@@ -64,8 +65,12 @@ class web_commun
 
 class UDP_broadcast
 {
-    int signalPin 4; // GPIO pin receiving signal from Vive circuit
-    Vive510 vive1(signalPin);
+    int signalPin1 8; // GPIO pin receiving signal from Vive circuit
+    int signalPin2 18;
+    int xLocation = 0; // x location of the center of the mobile base, which is the average of 2 vives
+    int yLocation = 0; // y location of the center of the mobile base, which is the average of 2 vives
+    Vive510 vive1(signalPin1);
+    Vive510 vive2(signalPin2);
 
     WiFiUDP UDPServer;
     const char *ssid = "TP-Link_FD24";
@@ -98,11 +103,16 @@ class UDP_broadcast
         Serial.println(target);
     }
 
+    ~UDP_broadcast() {}
+
     void sendXY()
     {
-        if (vive1.status() == VIVE_LOCKEDON)
+        if (vive1.status() == VIVE_LOCKEDON && vive2.status() == VIVE_LOCKEDON)
         {
-            std::sprintf(udpBuffer, "%02d,%04d,%04d", teamNumber, vive1.xCoord(), vive1.yCoord());
+            xLocation = 0.5 * (vive1.xCoord() + vive2.xCoord());
+            yLocation = 0.5 * (vive1.yCoord() + vive2.yCoord());
+
+            std::sprintf(udpBuffer, "%02d,%04d,%04d", teamNumber, xLocation, yLocation);
             UDPServer.beginPacket(target, 2808); // send to UDPport 2808
             UDPServer.printf("%s", udpBuffer);
             UDPServer.endPacket();
@@ -111,6 +121,59 @@ class UDP_broadcast
         }
         else
             vive1.sync(15); // try to resync 15 times (nonblocking);
+    }
+}
+
+class esp_now()
+{
+#define CHANNEL 1                                     // channel can be 1 to 14, channel 0 means current channel.
+#define MAC_RECV {0x84, 0xF7, 0x03, 0xA8, 0xBE, 0x30} // receiver MAC address (last digit should be even for STA)
+    uint8_t message;
+
+    esp_now()
+    {
+        Serial.begin(115200);
+        WiFi.mode(WIFI_STA);
+        Serial.print("Sending MAC: ");
+        Serial.println(WiFi.macAddress());
+        if (esp_now_init() != ESP_OK)
+        {
+            Serial.println("init failed");
+            ESP.restart();
+        }
+
+        esp_now_register_send_cb(OnDataSent); // optional if you want ack interrupt
+
+        if (esp_now_add_peer(&peer1) != ESP_OK)
+        {
+            Serial.println("Pair failed"); // ERROR  should not happen
+        }
+    }
+
+    ~esp_now() {}
+
+    esp_now_peer_info_t peer1 =
+        {
+            .peer_addr = MAC_RECV,
+            .channel = CHANNEL,
+            .encrypt = false,
+        };
+
+    void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status)
+    {
+        if (status == ESP_NOW_SEND_SUCCESS)
+            Serial.println("Success ");
+        else
+            Serial.println("Fail ");
+    }
+
+    void sendMessage()
+    {
+        message = 30;   //message is the group number
+        if (esp_now_send(peer1.peer_addr, message, sizeof(message)) == ESP_OK)
+            Serial.printf("Sent '%s' to %x:%x:%x:%x:%x:%x \n", message, peer1.peer_addr[0], peer1.peer_addr[1], peer1.peer_addr[2], peer1.peer_addr[3], peer1.peer_addr[4], peer1.peer_addr[5]);
+        else
+            Serial.println("Send failed");
     }
 }
 
