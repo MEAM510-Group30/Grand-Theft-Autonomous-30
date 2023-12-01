@@ -139,14 +139,14 @@ public:
         // TODO: calculate vive position
     }
 
-    bool atDesiredOrientation(float desired_theta)  // currently unable to deal with overshot
+    bool atDesiredOrientation(float desired_theta)  // alsolute angle from vive, currently unable to deal with overshot
     {
         calculateViveOrientation();
         float threshold = 1.0;  // degree, to be tuned
         return (abs(vive_theta - desired_theta) <= threshold);
     }
 
-    bool atDesiredPosition(float desired_x, float desired_y)  // currently unable to deal with overshot
+    bool atDesiredPosition(float desired_x, float desired_y)  // alsolute position from vive, currently unable to deal with overshot
     {
         calculateVivePosition();
         float threshold = 10.0;  // mm, to be tuned
