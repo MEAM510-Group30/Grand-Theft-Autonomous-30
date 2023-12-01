@@ -18,15 +18,20 @@
 
 #include "actions_motor.h"
 #include "actions_servo.h"
+#include <Arduino.h>
+#include "control.h"
 
 
 enum MoveActionMode
 {
     STOP,
+    GENERAL_MOVING,
     MOVE_FORWARD,
     MOVE_BACKWARD,
     TURN_LEFT,
-    TURN_RIGHT
+    TURN_RIGHT,
+    SAME_PLACE_LEFT,
+    SAME_PLACE_RIGHT
 };
 
 enum JawActionMode
@@ -134,12 +139,14 @@ public:
     {
         setMotorSpeed(MOTOR_L, 0);
         setMotorSpeed(MOTOR_R, 0);
+        moveActionMode = STOP;
     }
 
     void move()  // move according to specified left and right wheel speed
     {
         setMotorSpeed(MOTOR_L, desSpeedL);
         setMotorSpeed(MOTOR_R, desSpeedR);
+        moveActionMode = GENERAL_MOVING;
     }
 
     void moveForward(int speed)  // with speed parameter, however, this function does not have feedback control, therefore shouldn't be used directly in checkoff
@@ -148,12 +155,14 @@ public:
         // here we want the car go forward regardless of the +/- sign of speed
         setMotorSpeed(MOTOR_L, abs(speed));
         setMotorSpeed(MOTOR_R, abs(speed));
+        moveActionMode = MOVE_FORWARD;
     }
 
     void moveForward()  // overload without speed parameter
     {
         setMotorSpeed(MOTOR_L, abs(desSpeedL));
         setMotorSpeed(MOTOR_R, abs(desSpeedR));
+        moveActionMode = MOVE_FORWARD;
     }
 
     void moveBackward(int speed)  // with speed parameter, however, this function does not have feedback control, therefore shouldn't be used directly in checkoff
@@ -162,12 +171,14 @@ public:
         // here we want the car go backward regardless of the +/- sign of speed
         setMotorSpeed(MOTOR_L, -abs(speed));
         setMotorSpeed(MOTOR_R, -abs(speed));
+        moveActionMode = MOVE_BACKWARD;
     }
 
     void moveBackward()  // overload without speed parameter
     {
         setMotorSpeed(MOTOR_L, -abs(desSpeedL));
         setMotorSpeed(MOTOR_R, -abs(desSpeedR));
+        moveActionMode = MOVE_BACKWARD;
     }
 
     void turnLeft(int speed, int turnRate)
@@ -188,6 +199,7 @@ public:
         }
         setMotorSpeed(MOTOR_L, speedL);
         setMotorSpeed(MOTOR_R, speedR);
+        moveActionMode = TURN_LEFT;
     }
 
     void turnRight(int speed, int turnRate)
@@ -208,6 +220,7 @@ public:
         }
         setMotorSpeed(MOTOR_L, speedL);
         setMotorSpeed(MOTOR_R, speedR);
+        moveActionMode = TURN_RIGHT;
     }
 
     void turnLeftSamePlace(int speed)  // turn left without moving forward or backward
@@ -216,12 +229,14 @@ public:
         // here we want the car turn left regardless of the +/- sign of speed
         setMotorSpeed(MOTOR_L, -abs(speed));
         setMotorSpeed(MOTOR_R, abs(speed));
+        moveActionMode = SAME_PLACE_LEFT;
     }
 
     void turnLeftSamePlace()  // overload without speed parameter
     {
         setMotorSpeed(MOTOR_L, -abs(desSpeedL));
         setMotorSpeed(MOTOR_R, abs(desSpeedR));
+        moveActionMode = SAME_PLACE_LEFT;
     }
 
     void turnRightSamePlace(int speed)  // turn right without moving forward or backward
@@ -230,22 +245,26 @@ public:
         // here we want the car turn right regardless of the +/- sign of speed
         setMotorSpeed(MOTOR_L, abs(speed));
         setMotorSpeed(MOTOR_R, -abs(speed));
+        moveActionMode = SAME_PLACE_RIGHT;
     }
 
     void turnRightSamePlace()  // overload without speed parameter
     {
         setMotorSpeed(MOTOR_L, abs(desSpeedL));
         setMotorSpeed(MOTOR_R, -abs(desSpeedR));
+        moveActionMode = SAME_PLACE_RIGHT;
     }
 
     void grabTrophy()
     {
         setServoAngle(SERVO_JAW, 90);
+        jawActionMode = JAW_GRAB;
     }
 
     void releaseTrophy()
     {
         setServoAngle(SERVO_JAW, 0);
+        jawActionMode = JAW_RELEASE;
     }
 
 };
