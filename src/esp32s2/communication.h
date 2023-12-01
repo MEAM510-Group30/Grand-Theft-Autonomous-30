@@ -3,6 +3,8 @@
 #ifndef COMMUNICATION_H
 #define COMMUNICATION_H
 
+#include <iostream>
+#include <cstdint>
 #include "website.h"
 #include "html510.h"
 #include "s2_vive510.h"
@@ -68,18 +70,10 @@ class UDP_broadcast
     WiFiUDP UDPServer;
     const char *ssid = "TP-Link_FD24";
     const char *password = "65512111";
-    IPAddress target(192, 168, 1, 58);  // change to IP you are sending to
-    IPAddress myIP(192, 168, 1, 57);    //change our IP
-    char udpBuffer[100];
-
-    void fncUdpSend()
-    {
-        // send what ever you want upto buffer size
-        UDPServer.beginPacket(target, 2808); // send to UDPport 2808
-        UDPServer.printf("%s", this.udpBuffer);
-        UDPServer.endPacket();
-        Serial.println(udpBuffer);
-    }
+    IPAddress target(192, 168, 1, 255); // broadcast mode is 255
+    IPAddress myIP(192, 168, 1, 57);    // change our IP
+    char udpBuffer[14];
+    int GroupNumber = 30;
 
     UDP_broadcast()
     {
@@ -103,11 +97,16 @@ class UDP_broadcast
         Serial.print(" to ");
         Serial.println(target);
     }
-    
+
     void sendXY()
     {
         if (vive1.status() == VIVE_LOCKEDON)
         {
+            std::sprintf(udpBuffer, "%02d,%04d,%04d", teamNumber, vive1.xCoord(), vive1.yCoord());
+            UDPServer.beginPacket(target, 2808); // send to UDPport 2808
+            UDPServer.printf("%s", udpBuffer);
+            UDPServer.endPacket();
+            Serial.println(udpBuffer);
             Serial.printf("X %d, Y %d\n", vive1.xCoord(), vive1.yCoord());
         }
         else
