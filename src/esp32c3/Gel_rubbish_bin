@@ -1,0 +1,61 @@
+#include <Wire.h>
+#include <VL53L0X.h>
+
+// Pins for the shutdown pins on the sensors
+#define SENSOR1_SHUTDOWN_PIN 18
+#define SENSOR2_SHUTDOWN_PIN 19
+
+// Addresses for the sensors
+#define SENSOR1_ADDRESS 0x30
+#define SENSOR2_ADDRESS 0x31
+
+VL53L0X sensor1;
+VL53L0X sensor2;
+
+void setup() {
+  Serial.begin(115200);
+  Wire.begin(4, 5); // SDA on 4, SCL on 5
+
+  pinMode(SENSOR1_SHUTDOWN_PIN, OUTPUT);
+  pinMode(SENSOR2_SHUTDOWN_PIN, OUTPUT);
+
+  digitalWrite(SENSOR1_SHUTDOWN_PIN, LOW);
+  digitalWrite(SENSOR2_SHUTDOWN_PIN, LOW);
+  delay(10);
+  
+  // Start sensor1
+  digitalWrite(SENSOR1_SHUTDOWN_PIN, HIGH);
+  delay(10);
+  sensor1.init(true);
+  delay(10);
+  sensor1.setAddress(SENSOR1_ADDRESS);
+  
+  // Start sensor2
+  digitalWrite(SENSOR2_SHUTDOWN_PIN, HIGH);
+  delay(10);
+  sensor2.init(true);
+  delay(10);
+  sensor2.setAddress(SENSOR2_ADDRESS);
+  // Set the sensors to long range mode
+  sensor1.setSignalRateLimit(1);
+  sensor1.setVcselPulsePeriod(VL53L0X::VcselPeriodPreRange, 18);
+  sensor1.setVcselPulsePeriod(VL53L0X::VcselPeriodFinalRange, 14);
+  sensor1.startContinuous();
+
+  sensor2.setSignalRateLimit(0.1);
+  sensor2.setVcselPulsePeriod(VL53L0X::VcselPeriodPreRange, 18);
+  sensor2.setVcselPulsePeriod(VL53L0X::VcselPeriodFinalRange, 14);
+  sensor2.startContinuous();
+}
+
+void loop() {
+  Serial.print("Sensor 1: ");
+  Serial.print(sensor1.readRangeContinuousMillimeters());
+  if (sensor1.timeoutOccurred()) { Serial.print(" TIMEOUT"); }
+  
+  Serial.print("\nSensor 2: ");
+  Serial.print(sensor2.readRangeContinuousMillimeters());
+  if (sensor2.timeoutOccurred()) { Serial.print(" TIMEOUT"); }
+  
+  Serial.println();
+}

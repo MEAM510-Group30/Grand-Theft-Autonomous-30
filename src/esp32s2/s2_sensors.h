@@ -1,10 +1,10 @@
 /*
-    Authors: 
-    
+    Authors:
+
         @jbwenjoy: Furina de Fontaine
-    
+
     Description:
-    
+
         This is the combination of encoder class and vive class
         Note that the library ESP32Encoder v0.8.0 (https://www.arduino.cc/reference/en/libraries/esp32encoder/) should be installed, higher version may not work
 */
@@ -37,19 +37,19 @@ public:
     Vive510 vive2;
 
     // Encoder values
-    int ONE_ROUND = 988;  // encoder value when the wheel goes 1 round
-    float WHEEL_PERIMETER = 205;  // mm
-    float DIST_PER_COUNT = WHEEL_PERIMETER / (float) ONE_ROUND;  // 0.2075 mm/count
+    int ONE_ROUND = 988;                                       // encoder value when the wheel goes 1 round
+    float WHEEL_PERIMETER = 205;                               // mm
+    float DIST_PER_COUNT = WHEEL_PERIMETER / (float)ONE_ROUND; // 0.2075 mm/count
     long encoder_L_val;
     long encoder_R_val;
     long encoder_L_val_previous;
     long encoder_R_val_previous;
     unsigned long encoder_time_current;  // ms
-    unsigned long encoder_time_previous;  // ms
-    float speed_L;  // mm/s
-    float speed_R;  // mm/s
-    float count_speed_L;  // counts per ms
-    float count_speed_R;  // counts per ms
+    unsigned long encoder_time_previous; // ms
+    float speed_L;                       // mm/s
+    float speed_R;                       // mm/s
+    float count_speed_L;                 // counts per ms
+    float count_speed_R;                 // counts per ms
 
     // Vive values
     int vive1_x;
@@ -58,14 +58,14 @@ public:
     int vive2_y;
 
     // position calculated from vive values
-    float vive_x;  // in mm
-    float vive_y;  // in mm
+    float vive_x; // in mm
+    float vive_y; // in mm
     // orientation calculated from vive values
-    float vive_theta;  // in degrees
+    float vive_theta; // in degrees
 
     // Constructor
     Sensors() : vive1(VIVE_PIN_1), vive2(VIVE_PIN_2),
-                encoder_L_val(0), encoder_R_val(0), 
+                encoder_L_val(0), encoder_R_val(0),
                 encoder_L_val_previous(0), encoder_R_val_previous(0),
                 speed_L(0.0), speed_R(0.0),
                 count_speed_L(0.0), count_speed_R(0.0),
@@ -101,16 +101,16 @@ public:
         speed_R = count_speed_R * DIST_PER_COUNT * 1000;
     }
 
-    void updateVive()  // should be called in main loop before using vive values every time
+    void updateVive() // should be called in main loop before using vive values every time
     {
         Serial.print(vive1.status());
         Serial.print('\t');
-        if (vive1.status() == VIVE_RECEIVING)  // if vive receives signal
+        if (vive1.status() == VIVE_RECEIVING) // if vive receives signal
         {
             vive1_x = vive1.xCoord();
             vive1_y = vive1.yCoord();
         }
-        else  // if vive does not receive signal, sync for 15 times, and don't update vive values
+        else // if vive does not receive signal, sync for 15 times, and don't update vive values
         {
             vive1.sync(15);
         }
@@ -132,13 +132,13 @@ public:
         updateVive();
         // TODO: calculate vive orientation
         // Here we assume that the two vive sensors are symmetricly located on the left and right side of the robot
-        // So when we select x+ axis as 0 degree, the heading of the robot is 
+        // So when we select x+ axis as 0 degree, the heading of the robot is
     }
 
     void calculateVivePosition()
     {
         updateVive();
-        
+
         // TODO: calculate vive position
         // Here we assume that the two vive sensors are symmetricly located on the left and right side of the robot
         // So the center of the robot is the midpoint of the two vive sensors
@@ -146,18 +146,25 @@ public:
         vive_y = (vive1_y + vive2_y) / 2;
     }
 
-    bool atDesiredOrientation(float desired_theta)  // alsolute angle from vive, currently unable to deal with overshot
+    bool atDesiredOrientation(float desired_theta) // alsolute angle from vive, currently unable to deal with overshot
     {
         calculateViveOrientation();
-        float threshold = 1.0;  // degree, to be tuned
+        float threshold = 1.0; // degree, to be tuned
         return (abs(vive_theta - desired_theta) <= threshold);
     }
 
-    bool atDesiredPosition(float desired_x, float desired_y)  // alsolute position from vive, currently unable to deal with overshot
+    bool atDesiredPosition(float desired_x, float desired_y) // alsolute position from vive, currently unable to deal with overshot
     {
         calculateVivePosition();
-        float threshold = 10.0;  // mm, to be tuned
+        float threshold = 10.0; // mm, to be tuned
         return (abs(vive_x - desired_x) <= threshold) && (abs(vive_y - desired_y) <= threshold);
+    }
+
+    void followWall()
+    {
+        // TODO: move ahead while trying to keep a constant distance to the wall
+        // both vive and tof sensors can be used
+        ;
     }
 };
 
