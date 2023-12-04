@@ -9,12 +9,33 @@
 #include "website.h"
 #include "html510.h"
 #include "s2_vive510.h"
+
+enum Mode
+{
+    WALL,
+    CAR,
+    TROPHY,
+    MANUAL,
+    NOTHING
+};
+
+enum Actions
+{
+    FORWARD,
+    BACKWARD,
+    LEFT,
+    RIGHT,
+    STOP
+};
 class web_commun
 {
-    Actions action;
-    Behavior behavior;
+public:
     esp_now esp_now_message;
-
+    Mode mode = NOTHING;
+    Actions action = STOP;
+    int speed = 0;
+    int turnRate = 50;
+    
     web_commun(IPAddress local_IP, const char *ssid = "Furina", const char *pwd = "Furinaaa") :
     {
         // our own IP address is local_IP above
@@ -31,8 +52,6 @@ class web_commun
 
         html_server.begin();
         html_server.attachHandler("/", handleRoot);
-        // html_server.attachHandler("/autopilot_on", handleAutopilotOn);
-        // html_server.attachHandler("/autopilot_off", handleAutopilotOff);
         html_server.attachHandler("/tro", handleTrophy);
         html_server.attachHandler("/man", handleManual);
         html_server.attachHandler("/wall", handleWall);
@@ -56,72 +75,73 @@ class web_commun
     void handleTrophy()
     {
         esp_now_message.sendMessage();
-        behavior.trophyMoving();
+        mode = TROPHY;
     }
 
     void handleManual()
     {
         esp_now_message.sendMessage();
-        behavior.fullyManual();
+        mode = MANUAL;
     }
 
     void handleWall()
     {
         esp_now_message.sendMessage();
-        behavior.wallFollowing();
+        mode = WALL;
     }
 
     void handleCar()
     {
         behavior.carPushing();
-        esp_now_message.sendMessage();
+        mode = CAR;
     }
 
     void handleForward()
     {
         esp_now_message.sendMessage();
-        action.moveForward(action.speed);
+        action = FORWARD;
     }
 
     void handleSpeed()
     {
         esp_now_message.sendMessage();
-        action.speed = html_server.getVal();
+        speed = html_server.getVal();
     }
 
     void handleBackward()
     {
         esp_now_message.sendMessage();
-        action.moveBackward(action.speed);
+        action = BACKWARD;
     }
 
     void handleLeft()
     {
         esp_now_message.sendMessage();
-        action.turnLeft(action.speed, action.turnRate);
+        action = LEFT;
     }
 
     void handleRight()
     {
         esp_now_message.sendMessage();
-        action.turnRight(action.speed, action.turnRate);
+        action = RIGHT;
     }
 
     void handleStop()
     {
         esp_now_message.sendMessage();
-        action.stop();
+        action = STOP;
     }
 
     void handleTurnRate()
     {
         esp_now_message.sendMessage();
-        action.turnRate = html_server.getVal();
+        turnRate = html_server.getVal();
     }
 }
 
 class UDP_broadcast
 {
+public:
     int signalPin1 8; // GPIO pin receiving signal from Vive circuit
     int signalPin2 18;
     int xLocation = 0; // x location of the center of the mobile base, which is the average of 2 vives
@@ -185,6 +205,8 @@ class esp_now()
 {
 #define CHANNEL 1                                     // channel can be 1 to 14, channel 0 means current channel.
 #define MAC_RECV {0x84, 0xF7, 0x03, 0xA8, 0xBE, 0x30} // receiver MAC address
+
+public:
     uint8_t message;
 
     esp_now()
@@ -257,7 +279,9 @@ class I2C_commun()
 #define ACK_CHECK_DIS 0x0          /*!< I2C master will not check ack from slave */
 #define ACK_VAL I2C_MASTER_ACK     /*!< I2C ack value */
 #define NACK_VAL I2C_MASTER_NACK   /*!< I2C nack value */
-uint8_t data_rd[DATA_LENGTH];
+
+public:
+    uint8_t data_rd[DATA_LENGTH];
 
     I2C_commun()
     {
