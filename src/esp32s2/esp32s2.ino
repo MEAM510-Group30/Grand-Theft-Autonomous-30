@@ -54,7 +54,10 @@ void loop() {
     // actions.setMotorSpeed(actions.MOTOR_L, 3000);  // left wheel
 
     sensors.updateEncoder();
+
+    // must be called before taking actions that uses PID speed control
     actions.updateActualSpeed(sensors.speed_L, sensors.speed_R);
+
     Serial.print('\n');
     Serial.print(sensors.speed_L);
     Serial.print('\t');

@@ -75,9 +75,11 @@ public:
     // When using PID, the controller should read these two variables and calculate desired speed for left and right wheels
     int speed;
     int turnRate;
-    // When using PID, the controller should modify these two variables
+    // When using PID, the controller should read these two variables, and update PID values
     int desSpeedL;
     int desSpeedR;
+    int PIDSpeedL;
+    int PIDSpeedR;
     // For servos, open-loop
     int servoAngleJaw;
     int servoAngleIR;
@@ -104,18 +106,12 @@ public:
         MOTOR_R(MOTOR_R_PWM, MOTOR_R_DIR1, MOTOR_R_DIR2, LEDC_CHA_1, LEDC_RES_BITS, LEDC_FREQ),
         SERVO_JAW(180, SERVO_JAW_PWM, LEDC_CHA_2, LEDC_RES_BITS, LEDC_FREQ),
         SERVO_IR(180, SERVO_IR_PWM, LEDC_CHA_3, LEDC_RES_BITS, LEDC_FREQ),
-        PID_L(2.0, 0.3, 0.001),
-        PID_R(2.0, 0.3, 0.001),
-        ACTUAL_SPEED_L(0),
-        ACTUAL_SPEED_R(0),
-        moveActionMode(STOP),
-        jawActionMode(JAW_HOLD),
-        speed(0),
-        turnRate(50),
-        desSpeedL(0),
-        desSpeedR(0),
-        servoAngleJaw(0),
-        servoAngleIR(0)
+        PID_L(2.0, 0.3, 0.001), PID_R(2.0, 0.3, 0.001),
+        ACTUAL_SPEED_L(0), ACTUAL_SPEED_R(0),
+        moveActionMode(STOP), jawActionMode(JAW_HOLD),
+        speed(0), turnRate(50),
+        desSpeedL(0), desSpeedR(0), PIDSpeedL(0), PIDSpeedR(0),
+        servoAngleJaw(0), servoAngleIR(0)
     {
         // ledcSetup(LEDC_CHA_0, LEDC_FREQ, LEDC_RES_BITS);
         // ledcSetup(LEDC_CHA_1, LEDC_FREQ, LEDC_RES_BITS);
@@ -156,8 +152,9 @@ public:
 
     void move()  // move according to specified left and right wheel speed
     {
-        setMotorSpeed(MOTOR_L, desSpeedL);
-        setMotorSpeed(MOTOR_R, desSpeedR);
+        PIDSpeedCalibration();
+        setMotorSpeed(MOTOR_L, PIDSpeedL);
+        setMotorSpeed(MOTOR_R, PIDSpeedR);
         moveActionMode = GENERAL_MOVING;
     }
 
@@ -172,8 +169,9 @@ public:
 
     void moveForward()  // overload without speed parameter
     {
-        setMotorSpeed(MOTOR_L, abs(desSpeedL));
-        setMotorSpeed(MOTOR_R, abs(desSpeedR));
+        PIDSpeedCalibration();
+        setMotorSpeed(MOTOR_L, abs(PIDSpeedL));
+        setMotorSpeed(MOTOR_R, abs(PIDSpeedR));
         moveActionMode = MOVE_FORWARD;
     }
 
@@ -188,6 +186,7 @@ public:
 
     void moveBackward()  // overload without speed parameter
     {
+        PIDSpeedCalibration();
         setMotorSpeed(MOTOR_L, -abs(desSpeedL));
         setMotorSpeed(MOTOR_R, -abs(desSpeedR));
         moveActionMode = MOVE_BACKWARD;
@@ -209,8 +208,11 @@ public:
                 speedL = (LEDC_RES - 2 * abs(deltaSpeed)) * speedL / abs(speedL);  // speedL is LEDC_RES - 2 * abs(deltaSpeed) or -LEDC_RES + 2 * abs(deltaSpeed)
             }
         }
-        setMotorSpeed(MOTOR_L, speedL);
-        setMotorSpeed(MOTOR_R, speedR);
+        desSpeedL = speedL;
+        desSpeedR = speedR;
+        PIDSpeedCalibration();
+        setMotorSpeed(MOTOR_L, PIDSpeedL);
+        setMotorSpeed(MOTOR_R, PIDSpeedR);
         moveActionMode = TURN_LEFT;
     }
 
@@ -230,8 +232,11 @@ public:
                 speedR = (LEDC_RES - 2 * abs(deltaSpeed)) * speedR / abs(speedR);  // speedR is LEDC_RES - 2 * abs(deltaSpeed) or -LEDC_RES + 2 * abs(deltaSpeed)
             }
         }
-        setMotorSpeed(MOTOR_L, speedL);
-        setMotorSpeed(MOTOR_R, speedR);
+        desSpeedL = speedL;
+        desSpeedR = speedR;
+        PIDSpeedCalibration();
+        setMotorSpeed(MOTOR_L, PIDSpeedL);
+        setMotorSpeed(MOTOR_R, PIDSpeedR);
         moveActionMode = TURN_RIGHT;
     }
 
@@ -239,15 +244,19 @@ public:
     {
         // speed itself can be positive or negative
         // here we want the car turn left regardless of the +/- sign of speed
-        setMotorSpeed(MOTOR_L, -abs(speed));
-        setMotorSpeed(MOTOR_R, abs(speed));
+        desSpeedL = -abs(speed);
+        desSpeedR = abs(speed);
+        PIDSpeedCalibration();
+        setMotorSpeed(MOTOR_L, -abs(PIDSpeedL));
+        setMotorSpeed(MOTOR_R, abs(PIDSpeedR));
         moveActionMode = SAME_PLACE_LEFT;
     }
 
-    void turnLeftSamePlace()  // overload without speed parameter
+    void turnLeftSamePlace()  // overload without speed parameter, with PID
     {
-        setMotorSpeed(MOTOR_L, -abs(desSpeedL));
-        setMotorSpeed(MOTOR_R, abs(desSpeedR));
+        PIDSpeedCalibration();
+        setMotorSpeed(MOTOR_L, -abs(PIDSpeedL));
+        setMotorSpeed(MOTOR_R, abs(PIDSpeedR));
         moveActionMode = SAME_PLACE_LEFT;
     }
 
@@ -255,19 +264,23 @@ public:
     {
         // speed itself can be positive or negative
         // here we want the car turn right regardless of the +/- sign of speed
-        setMotorSpeed(MOTOR_L, abs(speed));
-        setMotorSpeed(MOTOR_R, -abs(speed));
+        desSpeedL = abs(speed);
+        desSpeedR = -abs(speed);
+        PIDSpeedCalibration();        
+        setMotorSpeed(MOTOR_L, abs(PIDSpeedL));
+        setMotorSpeed(MOTOR_R, -abs(PIDSpeedR));
         moveActionMode = SAME_PLACE_RIGHT;
     }
 
     void turnRightSamePlace()  // overload without speed parameter
     {
-        setMotorSpeed(MOTOR_L, abs(desSpeedL));
-        setMotorSpeed(MOTOR_R, -abs(desSpeedR));
+        PIDSpeedCalibration();
+        setMotorSpeed(MOTOR_L, abs(PIDSpeedL));
+        setMotorSpeed(MOTOR_R, -abs(PIDSpeedR));
         moveActionMode = SAME_PLACE_RIGHT;
     }
 
-    void updateActualSpeed(float speed_L, float speed_R)
+    void updateActualSpeed(float speed_L, float speed_R)  // should be called in main loop before using actual speed (eg. in PID) every time
     {
         ACTUAL_SPEED_L = speed_L;
         ACTUAL_SPEED_R = speed_R;
@@ -285,8 +298,8 @@ public:
         float desSpeedL_mm_s = (float) desSpeedL * 0.08;
         float desSpeedR_mm_s = (float) desSpeedR * 0.08;
 
-        desSpeedL = PID_L.PID(desSpeedL_mm_s, ACTUAL_SPEED_L);
-        desSpeedR = PID_R.PID(desSpeedR_mm_s, ACTUAL_SPEED_R);
+        PIDSpeedL = PID_L.PID(desSpeedL_mm_s, ACTUAL_SPEED_L);
+        PIDSpeedR = PID_R.PID(desSpeedR_mm_s, ACTUAL_SPEED_R);
     }
 
 
