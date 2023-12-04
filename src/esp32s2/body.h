@@ -1,9 +1,7 @@
-// This file should be updated whenever website.html is updated.
-
 const char body[] PROGMEM = R"===(
 <!-- 
-  ### Don't forget to update the website.h file every time this file is modified! ###
-  
+  ### Don't forget to update the body.h file every time this file is modified! ###
+
   The website for this project need to do the following jobs:
   1. Mannually select the car mode: fully-automatic (competition), wall-following, police car pushing, fully-manual
   2. Manuually control the car when fully manual mode is selected (front, back, left, right, stop)

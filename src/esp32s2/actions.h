@@ -375,13 +375,13 @@ public:
 
     void grabTrophy()
     {
-        setServoAngle(SERVO_JAW, 90);
+        setServoAngle(SERVO_JAW, 80);
         jawActionMode = JAW_GRAB;
     }
 
     void releaseTrophy()
     {
-        setServoAngle(SERVO_JAW, 0);
+        setServoAngle(SERVO_JAW, 30);
         jawActionMode = JAW_RELEASE;
     }
 
