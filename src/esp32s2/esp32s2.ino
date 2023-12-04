@@ -22,7 +22,7 @@
 
 #include "control.h"
 
-#include "communication.h"
+// #include "communication.h"
 
 #include "s2_sensors.h"
 
@@ -60,9 +60,17 @@ void loop() {
     // actions.setMotorSpeed(actions.MOTOR_L, 3000);  // left wheel
 
     sensors.updateEncoder();
+    actions.updateActualSpeed(sensors.speed_L, sensors.speed_R);
+
+    // behavior.updateBehaviorClassHTMLVariables(...);
+    // behavior.updateBehaviorClassSensorVariables(...);
+    // behavior.action.updateHTMLData(...);
+    // behavior.action.updateActualSpeed(...);
 
     // must be called before taking actions that uses PID speed control
     actions.updateActualSpeed(sensors.speed_L, sensors.speed_R);
+
+    actions.turnLeftSamePlace(2000);
 
     Serial.print('\n');
     Serial.print(sensors.speed_L);

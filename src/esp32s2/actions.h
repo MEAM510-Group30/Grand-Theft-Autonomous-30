@@ -148,6 +148,13 @@ public:
         html_turnRate = turnRate;
     }
 
+    void updateActualSpeed(float speed_L, float speed_R) 
+    {
+        // Should be called in main loop before using actual speed (eg. in PID) every time
+        ACTUAL_SPEED_L = speed_L;
+        ACTUAL_SPEED_R = speed_R;
+    }
+
     // --- Medium-layer motor actions ---
 
     void stop()
@@ -307,7 +314,7 @@ public:
 
     void turnLeftSamePlace(int speed) // turn left without moving forward or backward
     {
-        // speed itself can be positive or negative
+        // speed (duty cycle) itself can be positive or negative
         // here we want the car turn left regardless of the +/- sign of speed
         desSpeedL = -abs(speed);
         desSpeedR = abs(speed);
@@ -347,12 +354,6 @@ public:
         setMotorSpeed(MOTOR_L, abs(PIDSpeedL));
         setMotorSpeed(MOTOR_R, -abs(PIDSpeedR));
         moveActionMode = SAME_PLACE_RIGHT;
-    }
-
-    void updateActualSpeed(float speed_L, float speed_R) // should be called in main loop before using actual speed (eg. in PID) every time
-    {
-        ACTUAL_SPEED_L = speed_L;
-        ACTUAL_SPEED_R = speed_R;
     }
 
     void PIDSpeedCalibration() // This function generates the des speed for left and right wheels in duty cycles
