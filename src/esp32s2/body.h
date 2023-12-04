@@ -1,6 +1,6 @@
 // This file should be updated whenever website.html is updated.
 
-const char website[] PROGMEM = R"===(
+const char body[] PROGMEM = R"===(
 <!-- 
   ### Don't forget to update the website.h file every time this file is modified! ###
   

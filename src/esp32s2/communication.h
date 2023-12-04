@@ -6,14 +6,14 @@
 #include <iostream>
 #include <cstdint>
 #include <esp_now.h>
-#include "website.h"
+#include "body.h"
 #include "html510.h"
-#include "s2_vive510.h"
+// #include "s2_vive510.h"
 
 enum Mode
 {
     WALL,
-    CAR,
+    PUSH,
     TROPHY,
     MANUAL,
     NOTHING
@@ -94,7 +94,7 @@ public:
     void handleCar()
     {
         behavior.carPushing();
-        mode = CAR;
+        mode = PUSH;
     }
 
     void handleForward()
