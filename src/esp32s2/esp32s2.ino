@@ -70,12 +70,18 @@ void loop() {
     // must be called before taking actions that uses PID speed control
     actions.updateActualSpeed(sensors.speed_L, sensors.speed_R);
 
-    actions.turnLeftSamePlace(2000);
+    actions.turnLeftSamePlace(4000);
+    // actions.MOTOR_L.setSpeed(2000);
+    // actions.MOTOR_R.setSpeed(-2000);
 
     Serial.print('\n');
     Serial.print(sensors.speed_L);
     Serial.print('\t');
     Serial.print(sensors.speed_R);
+    Serial.print('\t');
+    Serial.print(actions.PIDSpeedL);
+    Serial.print('\t');
+    Serial.print(actions.PIDSpeedR);
 
     // actions.moveBackward(-2000);
     
@@ -89,7 +95,7 @@ void loop() {
     // Serial.print('\t');
     // Serial.print(sensors.vive2_y);
 
-    delay(200);
+    delay(50);
 
     // ### Main Code ###
     // should comment all other test code when using

@@ -104,7 +104,7 @@ public:
                 MOTOR_R(MOTOR_R_PWM, MOTOR_R_DIR1, MOTOR_R_DIR2, LEDC_CHA_1, LEDC_RES_BITS, LEDC_FREQ),
                 SERVO_JAW(180, SERVO_JAW_PWM, LEDC_CHA_2, LEDC_RES_BITS, LEDC_FREQ),
                 SERVO_IR(180, SERVO_IR_PWM, LEDC_CHA_3, LEDC_RES_BITS, LEDC_FREQ),
-                PID_L(2.0, 0.3, 0.001), PID_R(2.0, 0.3, 0.001),
+                PID_L(), PID_R(), // use the default PID parameters in control.h
                 ACTUAL_SPEED_L(0), ACTUAL_SPEED_R(0),
                 moveActionMode(STOP), jawActionMode(JAW_HOLD),
                 html_speed(0), html_turnRate(50),
@@ -318,7 +318,19 @@ public:
         // here we want the car turn left regardless of the +/- sign of speed
         desSpeedL = -abs(speed);
         desSpeedR = abs(speed);
+
+        // Serial.print('\n');
+        // Serial.print(desSpeedL);
+        // Serial.print('\t');
+        // Serial.print(desSpeedR);
+
         PIDSpeedCalibration();
+
+        // Serial.print('\n');
+        // Serial.print(PIDSpeedL);
+        // Serial.print('\t');
+        // Serial.print(PIDSpeedR);
+
         setMotorSpeed(MOTOR_L, -abs(PIDSpeedL));
         setMotorSpeed(MOTOR_R, abs(PIDSpeedR));
         moveActionMode = SAME_PLACE_LEFT;
@@ -340,6 +352,12 @@ public:
         // here we want the car turn right regardless of the +/- sign of speed
         desSpeedL = abs(speed);
         desSpeedR = -abs(speed);
+
+        // Serial.print('\n');
+        // Serial.print(desSpeedL);
+        // Serial.print('\t');
+        // Serial.print(desSpeedR);
+
         PIDSpeedCalibration();
         setMotorSpeed(MOTOR_L, abs(PIDSpeedL));
         setMotorSpeed(MOTOR_R, -abs(PIDSpeedR));
@@ -367,6 +385,11 @@ public:
         // Considering the friction, we can assume that the actual speed in mm/s is 0.08 times the duty cycle
         float desSpeedL_mm_s = (float)desSpeedL * 0.08;
         float desSpeedR_mm_s = (float)desSpeedR * 0.08;
+
+        // Serial.print('\n');
+        // Serial.print(desSpeedL_mm_s);
+        // Serial.print('\t');
+        // Serial.print(desSpeedR_mm_s);
 
         PIDSpeedL = PID_L.PID(desSpeedL_mm_s, ACTUAL_SPEED_L);
         PIDSpeedR = PID_R.PID(desSpeedR_mm_s, ACTUAL_SPEED_R);
