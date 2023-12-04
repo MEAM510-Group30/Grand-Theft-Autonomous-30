@@ -34,11 +34,17 @@
 // actions is a global variable containing: 
 // pin definitions, ledc pwm parameters, two motor and two servo objects, 
 // and basic actions of specifying motor speeds and servo angles
+// This gloabl variable is only for debugging purposes
+// In the final version, the actions object should be created in the behavior class
 Actions actions = Actions();
 
 // sensors is a global variable containing:
 // pin definitions, encoder and vive objects, and sensor readings
 Sensors sensors = Sensors();
+
+// behavior is a global variable containing:
+// the behavior tree and the action object
+Behavior behavior = Behavior();
 
 void setup() {
     Serial.begin(115200);
@@ -49,7 +55,7 @@ void loop() {
     // should always be commented when not testing
     // should comment all other code when testing
     
-    actions.moveForward(1000);
+    // actions.moveForward(1000);
     // actions.setMotorSpeed(actions.MOTOR_R, 3000);  // right wheel
     // actions.setMotorSpeed(actions.MOTOR_L, 3000);  // left wheel
 
@@ -81,7 +87,7 @@ void loop() {
     // should comment all other test code when using
 
     // website cmd checking and global variables updating
-
+    
 
     // sensor reading and global variables updating
 
