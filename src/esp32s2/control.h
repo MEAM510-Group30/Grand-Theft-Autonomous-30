@@ -97,18 +97,18 @@ public:
     }
 
     // Control functions
-    float positionControl(float reference, float actual)
-    {
-        // TODO: Implement position control
-        ;
-    }
+    // float positionControl(float reference, float actual)
+    // {
+    //     // TODO: Implement position control
+    //     ;
+    // }
 
 
-    float velocityControl(float reference, float actual)
-    {
-        // TODO: Implement velocity control
-        ;
-    }
+    // float velocityControl(float reference, float actual)
+    // {
+    //     // TODO: Implement velocity control
+    //     ;
+    // }
 
 
 };

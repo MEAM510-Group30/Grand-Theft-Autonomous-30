@@ -22,7 +22,7 @@
 
 #include "control.h"
 
-// #include "communication.h"
+#include "communication.h"
 
 #include "s2_sensors.h"
 
