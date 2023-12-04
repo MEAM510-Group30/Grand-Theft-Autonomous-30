@@ -28,7 +28,8 @@ enum Actions
     STOP
 };
 class web_commun
-{
+{//in main function, initialize a web_commun variable to attach handlers
+//visit Mode, Action, speed, turnRate in main function
 public:
     esp_now esp_now_message;
     Mode mode = NOTHING;
@@ -140,14 +141,10 @@ public:
 }
 
 class UDP_broadcast
-{
+{   //use mamber function sendXY to broadcast
 public:
     int signalPin1 8; // GPIO pin receiving signal from Vive circuit
     int signalPin2 18;
-    int xLocation = 0; // x location of the center of the mobile base, which is the average of 2 vives
-    int yLocation = 0; // y location of the center of the mobile base, which is the average of 2 vives
-    Vive510 vive1(signalPin1);
-    Vive510 vive2(signalPin2);
 
     WiFiUDP UDPServer;
     const char *ssid = "TP-Link_FD24";
@@ -182,27 +179,18 @@ public:
 
     ~UDP_broadcast() {}
 
-    void sendXY()
-    {
-        if (vive1.status() == VIVE_LOCKEDON && vive2.status() == VIVE_LOCKEDON)
-        {
-            xLocation = 0.5 * (vive1.xCoord() + vive2.xCoord());
-            yLocation = 0.5 * (vive1.yCoord() + vive2.yCoord());
-
-            std::sprintf(udpBuffer, "%02d,%04d,%04d", teamNumber, xLocation, yLocation);
+    void sendXY(int x,int y)
+    {//use in main function to broadcast XY
+            std::sprintf(udpBuffer, "%02d,%04d,%04d", teamNumber, x, y);
             UDPServer.beginPacket(target, 2808); // send to UDPport 2808
             UDPServer.printf("%s", udpBuffer);
             UDPServer.endPacket();
             Serial.println(udpBuffer);
-            Serial.printf("X %d, Y %d\n", vive1.xCoord(), vive1.yCoord());
-        }
-        else
-            vive1.sync(15); // try to resync 15 times (nonblocking);
     }
 }
 
 class esp_now()
-{
+{//use member function sendMessage() to send group number
 #define CHANNEL 1                                     // channel can be 1 to 14, channel 0 means current channel.
 #define MAC_RECV {0x84, 0xF7, 0x03, 0xA8, 0xBE, 0x30} // receiver MAC address
 
@@ -247,7 +235,7 @@ public:
     }
 
     void sendMessage()
-    {
+    {//use in main function to send group number every time communicate with web
         message = 30; // message is the group number
         if (esp_now_send(peer1.peer_addr, message, sizeof(message)) == ESP_OK)
             Serial.printf("Sent '%s' to %x:%x:%x:%x:%x:%x \n", message, peer1.peer_addr[0], peer1.peer_addr[1], peer1.peer_addr[2], peer1.peer_addr[3], peer1.peer_addr[4], peer1.peer_addr[5]);
@@ -257,7 +245,7 @@ public:
 }
 
 class I2C_commun()
-{
+{//use the 2 member functions in main function to read and write through i2c
 #include <stdio.h>
 #include "esp_log.h"
 #include "driver/i2c.h"
@@ -292,7 +280,7 @@ public:
     ~I2C_commun(){}
 
     static esp_err_t i2c_master_read_slave(i2c_port_t i2c_num, uint8_t * data_rd, size_t nsize)
-    {
+    {//use in main to read c3 message 
         if (nsize == 0)
         {
             return ESP_OK;
@@ -312,7 +300,7 @@ public:
     }
 
     static esp_err_t i2c_master_write_slave(i2c_port_t i2c_num, uint8_t * data_wr, size_t nsize)
-    {
+    {//use in main to write a message to c3
         i2c_cmd_handle_t cmd = i2c_cmd_link_create();
         i2c_master_start(cmd);
         i2c_master_write_byte(cmd, (ESP_SLAVE_ADDR << 1) | WRITE_BIT, ACK_CHECK_EN);
