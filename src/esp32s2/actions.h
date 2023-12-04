@@ -70,9 +70,10 @@ public:
     // These variables can be modified by the website (manual mode) and the behavior tree
     MoveActionMode moveActionMode;
     JawActionMode jawActionMode;
+    int IRServoMode; // angle in degrees
     // When using PID, the controller should read these two variables and calculate desired speed for left and right wheels
-    int speed;
-    int turnRate;
+    int html_speed;
+    int html_turnRate;
     // When using PID, the controller should read these two variables, and update PID values
     int desSpeedL;
     int desSpeedR;
@@ -133,9 +134,18 @@ public:
 
     void setServoAngle(Servo &SERVO, int angle)
     {
-        // We would like mid angle to be 0 degree, and the servo can rotate ANGLE_RANGE degrees
-        // angle is in range [-ANGLE_RANGE/2, ANGLE_RANGE/2]
+        // For the IR sensor servo, we would like mid angle to be 0 degree, and the servo can rotate ANGLE_RANGE degrees
+        // so angle is [-ANGLE_RANGE/2, ANGLE_RANGE/2]
+        // For the jaw servo, when jaw is open the angle is...
+        // when jaw is closed the angle is...
         SERVO.setAngle(angle);
+    }
+
+    void updateHTMLData(int speed, int turnRate)
+    {
+        // Should be called by mainloop/behavior.h every time before using html_speed and html_turnRate
+        html_speed = speed;
+        html_turnRate = turnRate;
     }
 
     // --- Upper-layer motor actions ---
@@ -149,14 +159,18 @@ public:
 
     void move() // move according to specified left and right wheel speed
     {
+        desSpeedL = html_speed;
+        desSpeedR = html_speed;
         PIDSpeedCalibration();
         setMotorSpeed(MOTOR_L, PIDSpeedL);
         setMotorSpeed(MOTOR_R, PIDSpeedR);
         moveActionMode = GENERAL_MOVING;
     }
 
-    void moveForward(int speed) // with speed parameter, however, this function does not have feedback control, therefore shouldn't be used directly in checkoff
+    void moveForward(int speed) // not using html_speed
     {
+        // with speed parameter, however, this function does not have feedback control,
+        // therefore shouldn't be used directly in checkoff
         // speed itself can be positive or negative
         // here we want the car go forward regardless of the +/- sign of speed
         setMotorSpeed(MOTOR_L, abs(speed));
@@ -164,16 +178,20 @@ public:
         moveActionMode = MOVE_FORWARD;
     }
 
-    void moveForward() // overload without speed parameter
+    void moveForward() // using html_speed
     {
+        desSpeedL = abs(html_speed);
+        desSpeedR = abs(html_speed);
         PIDSpeedCalibration();
         setMotorSpeed(MOTOR_L, abs(PIDSpeedL));
         setMotorSpeed(MOTOR_R, abs(PIDSpeedR));
         moveActionMode = MOVE_FORWARD;
     }
 
-    void moveBackward(int speed) // with speed parameter, however, this function does not have feedback control, therefore shouldn't be used directly in checkoff
+    void moveBackward(int speed) // not using html_speed
     {
+        // with speed parameter, however, this function does not have feedback control,
+        // therefore shouldn't be used directly in checkoff
         // speed itself can be positive or negative
         // here we want the car go backward regardless of the +/- sign of speed
         setMotorSpeed(MOTOR_L, -abs(speed));
@@ -181,15 +199,17 @@ public:
         moveActionMode = MOVE_BACKWARD;
     }
 
-    void moveBackward() // overload without speed parameter
+    void moveBackward() // using html_speed
     {
+        desSpeedL = -abs(html_speed);
+        desSpeedR = -abs(html_speed);
         PIDSpeedCalibration();
         setMotorSpeed(MOTOR_L, -abs(desSpeedL));
         setMotorSpeed(MOTOR_R, -abs(desSpeedR));
         moveActionMode = MOVE_BACKWARD;
     }
 
-    void turnLeft(int speed, int turnRate)
+    void turnLeft(int speed, int turnRate) // not using html_speed and html_turnRate
     {
         // turnRate is in range [0, 100]
         // Note that when turning left, the right motor should always rotate faster, regardless of the +/- sign of speed
@@ -213,7 +233,31 @@ public:
         moveActionMode = TURN_LEFT;
     }
 
-    void turnRight(int speed, int turnRate)
+    void turnLeft() // using html_speed and html_turnRate
+    {
+        // turnRate is in range [0, 100]
+        // Note that when turning left, the right motor should always rotate faster, regardless of the +/- sign of speed
+        float turnRateFloat = (float)html_turnRate / 100.0;
+        int deltaSpeed = html_speed * 0.5 * turnRateFloat;
+        int speedR = html_speed + deltaSpeed;
+        int speedL = html_speed - deltaSpeed;
+        if (abs(speedR) > LEDC_RES)
+        {
+            speedR = LEDC_RES * speedR / abs(speedR); // speedR is LEDC_RES or -LEDC_RES]
+            if (speedL != 0)                          // If speedL is 0, then we don't need to change it
+            {
+                speedL = (LEDC_RES - 2 * abs(deltaSpeed)) * speedL / abs(speedL); // speedL is LEDC_RES - 2 * abs(deltaSpeed) or -LEDC_RES + 2 * abs(deltaSpeed)
+            }
+        }
+        desSpeedL = speedL;
+        desSpeedR = speedR;
+        PIDSpeedCalibration();
+        setMotorSpeed(MOTOR_L, PIDSpeedL);
+        setMotorSpeed(MOTOR_R, PIDSpeedR);
+        moveActionMode = TURN_LEFT;
+    }
+
+    void turnRight(int speed, int turnRate) // not using html_speed and html_turnRate
     {
         // turnRate is in range [0, 100]
         // Note that when turning right, the left motor should always rotate faster, regardless of the +/- sign of speed
@@ -221,6 +265,30 @@ public:
         int deltaSpeed = speed * 0.5 * turnRateFloat;
         int speedL = speed + deltaSpeed;
         int speedR = speed - deltaSpeed;
+        if (abs(speedL) > LEDC_RES)
+        {
+            speedL = LEDC_RES * speedL / abs(speedL); // speedL is LEDC_RES or -LEDC_RES]
+            if (speedR != 0)                          // If speedR is 0, then we don't need to change it
+            {
+                speedR = (LEDC_RES - 2 * abs(deltaSpeed)) * speedR / abs(speedR); // speedR is LEDC_RES - 2 * abs(deltaSpeed) or -LEDC_RES + 2 * abs(deltaSpeed)
+            }
+        }
+        desSpeedL = speedL;
+        desSpeedR = speedR;
+        PIDSpeedCalibration();
+        setMotorSpeed(MOTOR_L, PIDSpeedL);
+        setMotorSpeed(MOTOR_R, PIDSpeedR);
+        moveActionMode = TURN_RIGHT;
+    }
+
+    void turnRight() // using html_speed and html_turnRate
+    {
+        // turnRate is in range [0, 100]
+        // Note that when turning right, the left motor should always rotate faster, regardless of the +/- sign of speed
+        float turnRateFloat = (float)html_turnRate / 100.0;
+        int deltaSpeed = html_speed * 0.5 * turnRateFloat;
+        int speedL = html_speed + deltaSpeed;
+        int speedR = html_speed - deltaSpeed;
         if (abs(speedL) > LEDC_RES)
         {
             speedL = LEDC_RES * speedL / abs(speedL); // speedL is LEDC_RES or -LEDC_RES]
@@ -251,6 +319,8 @@ public:
 
     void turnLeftSamePlace() // overload without speed parameter, with PID
     {
+        desSpeedL = -abs(html_speed);
+        desSpeedR = abs(html_speed);
         PIDSpeedCalibration();
         setMotorSpeed(MOTOR_L, -abs(PIDSpeedL));
         setMotorSpeed(MOTOR_R, abs(PIDSpeedR));
@@ -271,6 +341,8 @@ public:
 
     void turnRightSamePlace() // overload without speed parameter
     {
+        desSpeedL = abs(html_speed);
+        desSpeedR = -abs(html_speed);
         PIDSpeedCalibration();
         setMotorSpeed(MOTOR_L, abs(PIDSpeedL));
         setMotorSpeed(MOTOR_R, -abs(PIDSpeedR));
@@ -311,6 +383,14 @@ public:
     {
         setServoAngle(SERVO_JAW, 0);
         jawActionMode = JAW_RELEASE;
+    }
+
+    // --- IR servo actions ---
+
+    void setIRServoAngle(int angle)
+    {
+        setServoAngle(SERVO_IR, angle);
+        IRServoMode = angle;
     }
 };
 

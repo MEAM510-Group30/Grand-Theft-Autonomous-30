@@ -59,6 +59,34 @@ enum Mode
 class Behavior
 {
 private:
+    // Determine the mode based on global variables or HTML input
+    void detectMode()
+    {
+        // Called at the begining of runBehaviorTree()
+        switch (html_state)
+        {
+        case 'a':
+            current_mode = AUTO;
+            break;
+        case 'w':
+            current_mode = WALL;
+            break;
+        case 'p':
+            current_mode = PUSH;
+            break;
+        case 't':
+            current_mode = TROPHY;
+            break;
+        case 'm':
+            current_mode = MANUAL;
+            break;
+        case 'n':
+        default:
+            current_mode = NOTHING;
+            break;
+        }
+    }
+
     bool atDesiredOrientation(float desired_theta) // alsolute angle from vive, currently unable to deal with overshot
     {
         float threshold = 5.0; // degree, to be tuned
@@ -101,6 +129,8 @@ private:
             action.followWall();
             previous_wall_theta = sensor.vive_theta;
         }
+
+        // End: I don't think we need the robot to terminate this mode automatically, so nothing to do here
     }
 
     void carPushing()
@@ -187,7 +217,7 @@ public:
 
     void updateBehaviorClassHTMLVariables(char state, char manual_direction, bool jaw_open, int speed, int turn_rate)
     {
-        // TODO: call this function in the main loop to update all HTML variables in this class
+        // Call this function in the main loop to update all HTML variables in this class
         html_state = state;
         html_manual_direction = manual_direction;
         html_jaw_open = jaw_open;
@@ -197,7 +227,7 @@ public:
 
     void updateBehaviorClassSensorsData(uint8_t front, uint8_t left, int x, int y, int theta, int police_x, int police_y, int trophy_direction)
     {
-        // TODO: call this function in the main loop to update all sensors data in this class
+        // Call this function in the main loop to update all sensors data in this class
         tof_front = front;
         tof_left = left;
         vive_x = x;
@@ -208,75 +238,44 @@ public:
         trophy_direction = trophy_direction;
     }
 
-    // Method to detect mode
-    void detectMode()
-    {
-        // Logic to determine the mode based on global variables or HTML input
-        switch (html_state)
-        {
-        case 'a':
-            current_mode = AUTO;
-            break;
-        case 'w':
-            current_mode = WALL;
-            break;
-        case 'p':
-            current_mode = PUSH;
-            break;
-        case 't':
-            current_mode = TROPHY;
-            break;
-        case 'm':
-            current_mode = MANUAL;
-            break;
-        case 'n':
-        default:
-            current_mode = NOTHING;
-            break;
-        }
-    }
-
     // Main behavior tree execution method
     void runBehaviorTree()
     {
-        while (true)
+        detectMode(); // Detect current mode
+
+        // Execute corresponding mode logic
+        if (current_mode == AUTO)
         {
-            detectMode(); // Detect current mode
-
-            // Execute corresponding mode logic
-            if (current_mode == AUTO)
-            {
-                fullyAutomatic();
-            }
-            else if (current_mode == WALL)
-            {
-                wallFollowing();
-            }
-            else if (current_mode == PUSH)
-            {
-                carPushing();
-            }
-            else if (current_mode == TROPHY)
-            {
-                trophyMoving();
-            }
-            else if (current_mode == MANUAL)
-            {
-                fullyManual();
-            }
-            else
-            {
-                doNothing();
-            }
-
-            // Implement any necessary delays or loop control
+            fullyAutomatic();
+        }
+        else if (current_mode == WALL)
+        {
+            wallFollowing();
+        }
+        else if (current_mode == PUSH)
+        {
+            carPushing();
+        }
+        else if (current_mode == TROPHY)
+        {
+            trophyMoving();
+        }
+        else if (current_mode == MANUAL)
+        {
+            fullyManual();
+        }
+        else
+        {
+            doNothing();
         }
     }
 };
 
-// Below shows how to use the behavior tree
+// // Below shows how to use the behavior tree
+// BehaviorTree behavior_tree;
 // void loop() {
-//     BehaviorTree behavior_tree;
+//     updateBehaviorClassHTMLVariables(...); // Update HTML variables in the behavior class
+//     updateBehaviorClassSensorsData(...); // Update sensors data in the behavior class
 //     behavior_tree.runBehaviorTree(); // Run the behavior tree
 // }
 
