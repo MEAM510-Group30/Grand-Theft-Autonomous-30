@@ -44,6 +44,8 @@
 #ifndef BEHAVIOR_H
 #define BEHAVIOR_H
 
+#include "actions.h"
+
 enum Mode
 {
     AUTO,
@@ -57,35 +59,47 @@ enum Mode
 class Behavior
 {
 private:
+    bool atDesiredOrientation(float desired_theta) // alsolute angle from vive, currently unable to deal with overshot
+    {
+        float threshold = 5.0; // degree, to be tuned
+        return (abs(vive_theta - desired_theta) <= threshold);
+    }
+
+    bool atDesiredPosition(float desired_x, float desired_y) // alsolute position from vive, currently unable to deal with overshot
+    {
+        float threshold = 10.0; // mm, to be tuned
+        return (abs(vive_x - desired_x) <= threshold) && (abs(vive_y - desired_y) <= threshold);
+    }
+
     // Private methods for each behavior mode
     void fullyAutomatic()
     {
-        // Logic for fully-automatic mode
+        // TODO: Logic for fully-automatic mode
+        return;
     }
 
-    void wallFollowing()
+    void wallFollowing() // Logic for wall-following mode
     {
-        // Logic for wall-following mode
-        bool flag = false;
-        int TOFValue_Front = getTOFValue_Front();    //return the front TOF value
-        int TOFValue_left = getTOFValue_left();    //return the left TOF value
-        int dist_to_turn = 15;  //the distance to turn at the corner
-        Actions wall_follow_action;
-        Sensors sensor;
-        float theta;    //to record present theta when finish turning
+        uint8_t dist_to_turn_thres = 150; // distance threshold to turn at the corner, mm
+        float previous_wall_theta;        // to record present theta when finish turning
 
-        if(TOFValue_Front <= dist_to_turn && !flag){
-            flag = true;
+        if (tof_front <= dist_to_turn_thres && !needTurnFlag) // if front distance is too small, turn right
+        {
+            needTurnFlag = true;
         }
-        if(atDesiredOrientation(theta + 90) && flag){  //define () to return a flag when finish turning
-            flag = false;
-            theta = sensor.vive_theta;
+        if (atDesiredOrientation(previous_wall_theta + 90) && needTurnFlag) // if finish turning, set needTurnFlag to false
+        {
+            needTurnFlag = false;
+            previous_wall_theta = sensor.vive_theta;
         }
-        if(flag){
-            wall_follow_action.turnLeftSamePlace();
+        if (needTurnFlag) // if need to turn, turn right at the same place
+        {
+            action.turnRightSamePlace();
         }
-        if(!flag){
-            wall_follow_action.followWall();
+        if (!needTurnFlag) // if don't need to turn, follow the wall, and keep updating previous_wall_theta
+        {
+            action.followWall();
+            previous_wall_theta = sensor.vive_theta;
         }
     }
 
@@ -102,29 +116,124 @@ private:
     void fullyManual()
     {
         // Logic for fully-manual mode
+        switch (html_manual_direction)
+        {
+        case 'f':
+            action.moveForward(html_speed);
+            break;
+        case 'b':
+            action.moveBackward(html_speed);
+            break;
+        case 'l':
+            action.turnLeft(html_speed, html_turn_rate);
+            break;
+        case 'r':
+            action.turnRight(html_speed, html_turn_rate);
+            break;
+        case 'o':
+        default:
+            action.stop();
+            break;
+        }
     }
 
     void doNothing()
     {
         // Logic for do-nothing mode
+        return;
     }
 
 public:
-    // Here we need some variables to store the current position, the police car position,
-    // the trophy position, the trophy signal, the friendly and enemy team's scores, etc.
+    // Here we need some variables to store ToF data, current vive position, police car position,
+    // the trophy direction, the trophy signal freq, the friendly and enemy team's scores, etc.
     // These variables should be updated every loop, and can be changed by html website at any time.
     // So we also need some public functions to read and write these variables.
-    Mode current_mode = NOTHING; // Initial mode
+
+    Mode current_mode; // Initial mode
+    Actions action;    // Action object
+
+    bool needTurnFlag; // for wall following
+
+    // sensors
+    uint8_t tof_front;    // front TOF value, mm
+    uint8_t tof_left;     // left TOF value, mm
+    int vive_x;           // vive x coordinate, mm
+    int vive_y;           // vive y coordinate, mm
+    int vive_theta;       // vive heading, degree
+    int police_x;         // police car x coordinate, mm
+    int police_y;         // police car y coordinate, mm
+    int trophy_direction; // trophy direction, degree
+
+    // html
+    char html_state;            // html state, 'a' for auto, 'w' for wall, 'p' for push, 't' for trophy, 'm' for manual, 'n' for nothing
+    char html_manual_direction; // html manual direction, 'f' for forward, 'b' for backward, 'l' for left, 'r' for right, 'o' for stop
+    bool html_jaw_open;         // html jaw, true for open, false for close
+    int html_speed;             // html speed in duty cycle, 0-4095
+    int html_turn_rate;         // html turn rate, 0-100
 
     // Constructor, copy constructor and destructor
-    Behavior() {}
+    Behavior() : current_mode(NOTHING),
+                 action(),
+                 needTurnFlag(false),
+                 tof_front(0), tof_left(0),
+                 vive_x(0), vive_y(0), vive_theta(0),
+                 police_x(0), police_y(0), trophy_direction(0),
+                 html_state('n'), html_manual_direction('o'), html_jaw_open(false),
+                 html_speed(0), html_turn_rate(0)
+    {
+    }
     Behavior(const Behavior &old) {}
     ~Behavior() {}
+
+    void updateBehaviorClassHTMLVariables(char state, char manual_direction, bool jaw_open, int speed, int turn_rate)
+    {
+        // TODO: call this function in the main loop to update all HTML variables in this class
+        html_state = state;
+        html_manual_direction = manual_direction;
+        html_jaw_open = jaw_open;
+        html_speed = speed;
+        html_turn_rate = turn_rate;
+    }
+
+    void updateBehaviorClassSensorsData(uint8_t front, uint8_t left, int x, int y, int theta, int police_x, int police_y, int trophy_direction)
+    {
+        // TODO: call this function in the main loop to update all sensors data in this class
+        tof_front = front;
+        tof_left = left;
+        vive_x = x;
+        vive_y = y;
+        vive_theta = theta;
+        police_x = police_x;
+        police_y = police_y;
+        trophy_direction = trophy_direction;
+    }
 
     // Method to detect mode
     void detectMode()
     {
         // Logic to determine the mode based on global variables or HTML input
+        switch (html_state)
+        {
+        case 'a':
+            current_mode = AUTO;
+            break;
+        case 'w':
+            current_mode = WALL;
+            break;
+        case 'p':
+            current_mode = PUSH;
+            break;
+        case 't':
+            current_mode = TROPHY;
+            break;
+        case 'm':
+            current_mode = MANUAL;
+            break;
+        case 'n':
+        default:
+            current_mode = NOTHING;
+            break;
+        }
     }
 
     // Main behavior tree execution method
