@@ -107,7 +107,7 @@ public:
                 PID_L(2.0, 0.3, 0.001), PID_R(2.0, 0.3, 0.001),
                 ACTUAL_SPEED_L(0), ACTUAL_SPEED_R(0),
                 moveActionMode(STOP), jawActionMode(JAW_HOLD),
-                speed(0), turnRate(50),
+                html_speed(0), html_turnRate(50),
                 desSpeedL(0), desSpeedR(0), PIDSpeedL(0), PIDSpeedR(0),
                 servoAngleJaw(0), servoAngleIR(0)
     {
@@ -148,7 +148,7 @@ public:
         html_turnRate = turnRate;
     }
 
-    // --- Upper-layer motor actions ---
+    // --- Medium-layer motor actions ---
 
     void stop()
     {
@@ -391,6 +391,14 @@ public:
     {
         setServoAngle(SERVO_IR, angle);
         IRServoMode = angle;
+    }
+
+    // --- Upper-layer actions ---
+
+    void followWallForward()
+    {
+        // TODO
+        ;
     }
 };
 

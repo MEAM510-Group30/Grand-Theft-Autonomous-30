@@ -118,7 +118,7 @@ private:
         if (atDesiredOrientation(previous_wall_theta + 90) && needTurnFlag) // if finish turning, set needTurnFlag to false
         {
             needTurnFlag = false;
-            previous_wall_theta = sensor.vive_theta;
+            previous_wall_theta = vive_theta;
         }
         if (needTurnFlag) // if need to turn, turn right at the same place
         {
@@ -126,8 +126,8 @@ private:
         }
         if (!needTurnFlag) // if don't need to turn, follow the wall, and keep updating previous_wall_theta
         {
-            action.followWall();
-            previous_wall_theta = sensor.vive_theta;
+            action.followWallForward();
+            previous_wall_theta = vive_theta;
         }
 
         // End: I don't think we need the robot to terminate this mode automatically, so nothing to do here
