@@ -110,6 +110,16 @@ public:
         return output;
     }
 
+    void resetPID()
+    {
+        error = 0;
+        error_previous = 0;
+        integral = 0;
+        derivative = 0;
+        time_current_ms = (float) millis();
+        time_previous_ms = (float) millis();
+    }
+
     // Control functions
     // float positionControl(float reference, float actual)
     // {

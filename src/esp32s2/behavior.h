@@ -108,17 +108,18 @@ private:
 
     void wallFollowing() // Logic for wall-following mode
     {
-        uint8_t dist_to_turn_thres = 150; // distance threshold to turn at the corner, mm
+        uint8_t dist_to_turn_thres = 350; // distance threshold to turn at the corner, mm
         float previous_wall_theta;        // to record present theta when finish turning
 
         if (tof_front <= dist_to_turn_thres && !needTurnFlag) // if front distance is too small, turn right
         {
             needTurnFlag = true;
         }
-        if (atDesiredOrientation(previous_wall_theta + 90) && needTurnFlag) // if finish turning, set needTurnFlag to false
+        if (atDesiredOrientation(previous_wall_theta + 90) && needTurnFlag) // if finish turning, set needTurnFlag to false, and reset PID
         {
             needTurnFlag = false;
             previous_wall_theta = vive_theta;
+            action.PID_wall.resetPID();
         }
         if (needTurnFlag) // if need to turn, turn right at the same place
         {
@@ -126,6 +127,7 @@ private:
         }
         if (!needTurnFlag) // if don't need to turn, follow the wall, and keep updating previous_wall_theta
         {
+            
             action.followWallForward();
             previous_wall_theta = vive_theta;
         }

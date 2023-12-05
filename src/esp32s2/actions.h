@@ -7,9 +7,10 @@
 
         This file defines functions for all kinds of actions.
 
-        Two layers of actions should be defined here:
+        Three layers of actions should be defined here:
             1. Basic actions, like specifying motor speed, servo angle, etc.
-            2. Upper-layer actions, like moving, turning, etc, which are combinations of basic actions.
+            2. Medium-layer actions, like moving, turning, etc, which are combinations of basic actions.
+            2. Upper-layer actions, like wall following, car pushing, etc.
 
 */
 
@@ -92,19 +93,25 @@ public:
     Servo SERVO_IR;  // = Servo(180, SERVO_IR_PWM, LEDC_CHA_3, LEDC_RES_BITS, LEDC_FREQ);
 
     // PID class
-    PIDController PID_L; // = PIDController(2.0, 0.3, 0.001);
-    PIDController PID_R; // = PIDController(2.0, 0.3, 0.001);
+    PIDController PID_L; // = PIDController(kp=15.0, ki=0.05, kd=0.05);
+    PIDController PID_R; // = PIDController(kp=15.0, ki=0.05, kd=0.05);
+    PIDController PID_wall;
 
     // Actual speedL/R in mm/s, this should be updated by main in every loop
     float ACTUAL_SPEED_L;
     float ACTUAL_SPEED_R;
+
+    // ToF values, in mm
+    int tof_side;
+    int tof_front;
 
     // Constructor with initialization list
     Actions() : MOTOR_L(MOTOR_L_PWM, MOTOR_L_DIR1, MOTOR_L_DIR2, LEDC_CHA_0, LEDC_RES_BITS, LEDC_FREQ),
                 MOTOR_R(MOTOR_R_PWM, MOTOR_R_DIR1, MOTOR_R_DIR2, LEDC_CHA_1, LEDC_RES_BITS, LEDC_FREQ),
                 SERVO_JAW(180, SERVO_JAW_PWM, LEDC_CHA_2, LEDC_RES_BITS, LEDC_FREQ),
                 SERVO_IR(180, SERVO_IR_PWM, LEDC_CHA_3, LEDC_RES_BITS, LEDC_FREQ),
-                PID_L(), PID_R(), // use the default PID parameters in control.h
+                PID_L(), PID_R(),                       // use the default PID parameters in control.h for speed control
+                PID_wall(kp = 0.1, ki = 0.0, kd = 0.0), // wall following PID parameters
                 ACTUAL_SPEED_L(0), ACTUAL_SPEED_R(0),
                 moveActionMode(STOP), jawActionMode(JAW_HOLD),
                 html_speed(0), html_turnRate(50),
@@ -148,11 +155,16 @@ public:
         html_turnRate = turnRate;
     }
 
-    void updateActualSpeed(float speed_L, float speed_R) 
+    void updateActualSpeed(float speed_L, float speed_R)
     {
         // Should be called in main loop before using actual speed (eg. in PID) every time
         ACTUAL_SPEED_L = speed_L;
         ACTUAL_SPEED_R = speed_R;
+    }
+
+    void updateToFValues(int tof_side, int tof_front)
+    {
+        // Should be called in main loop before using tof values every time
     }
 
     // --- Medium-layer motor actions ---
@@ -421,8 +433,24 @@ public:
 
     void followWallForward()
     {
-        // TODO
-        ;
+        // Wall following PID uses the distance to the wall as input,
+        // a constant distance (200mm) as the reference,
+        // and the output is the error in desSpeed for left and right wheels
+
+        // As we want the side ToF sensor to be at the left side of the robot,
+        // if the robot is too close to the wall, the left wheel should rotate faster,
+        // if the robot is too far from the wall, the right wheel should rotate faster.
+
+        float refernce_distance = 200; // mm
+
+        float LminusR = PID_wall.PID(refernce_distance, tof_side); // duty cycle
+        float LplusR = 2 * html_speed;                             // duty cycle
+        desSpeedL = (LplusR + LminusR) / 2;
+        desSpeedR = (LplusR - LminusR) / 2;
+        
+        PIDSpeedCalibration();
+        setMotorSpeed(MOTOR_L, PIDSpeedL);
+        setMotorSpeed(MOTOR_R, PIDSpeedR);
     }
 };
 
