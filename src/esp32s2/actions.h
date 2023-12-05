@@ -96,6 +96,8 @@ public:
     PIDController PID_L; // = PIDController(kp=15.0, ki=0.05, kd=0.05);
     PIDController PID_R; // = PIDController(kp=15.0, ki=0.05, kd=0.05);
     PIDController PID_wall;
+    // PIDController PID_pos_x;
+    // PIDController PID_pos_y;
 
     // Actual speedL/R in mm/s, this should be updated by main in every loop
     float ACTUAL_SPEED_L;
@@ -105,6 +107,14 @@ public:
     int tof_side;
     int tof_front;
 
+    // Position values, in mm
+    float current_x;
+    float current_y;
+    float current_theta;
+    float target_x;
+    float target_y;
+    float target_theta;
+
     // Constructor with initialization list
     Actions() : MOTOR_L(MOTOR_L_PWM, MOTOR_L_DIR1, MOTOR_L_DIR2, LEDC_CHA_0, LEDC_RES_BITS, LEDC_FREQ),
                 MOTOR_R(MOTOR_R_PWM, MOTOR_R_DIR1, MOTOR_R_DIR2, LEDC_CHA_1, LEDC_RES_BITS, LEDC_FREQ),
@@ -112,6 +122,7 @@ public:
                 SERVO_IR(180, SERVO_IR_PWM, LEDC_CHA_3, LEDC_RES_BITS, LEDC_FREQ),
                 PID_L(), PID_R(),                       // use the default PID parameters in control.h for speed control
                 PID_wall(kp = 0.1, ki = 0.0, kd = 0.0), // wall following PID parameters
+                // PID_pos_x(kp = 0.1, ki = 0.0, kd = 0.0), PID_pos_y(kp = 0.1, ki = 0.0, kd = 0.0),
                 ACTUAL_SPEED_L(0), ACTUAL_SPEED_R(0),
                 moveActionMode(STOP), jawActionMode(JAW_HOLD),
                 html_speed(0), html_turnRate(50),
@@ -441,17 +452,69 @@ public:
         // if the robot is too close to the wall, the left wheel should rotate faster,
         // if the robot is too far from the wall, the right wheel should rotate faster.
 
-        float refernce_distance = 200; // mm
+        float refernce_distance = 150; // mm
 
         float LminusR = PID_wall.PID(refernce_distance, tof_side); // duty cycle
         float LplusR = 2 * html_speed;                             // duty cycle
         desSpeedL = (LplusR + LminusR) / 2;
         desSpeedR = (LplusR - LminusR) / 2;
-        
+
         PIDSpeedCalibration();
         setMotorSpeed(MOTOR_L, PIDSpeedL);
         setMotorSpeed(MOTOR_R, PIDSpeedR);
     }
+
+    void turnToHeading(float heading)
+    {
+        // Turn to the specified heading
+        // The heading is in degrees, and 0 degree is the x+ axis
+
+        float delta_theta = heading - current_theta;
+        if (delta_theta > 180)
+        {
+            delta_theta -= 360;
+        }
+        else if (delta_theta < -180)
+        {
+            delta_theta += 360;
+        }
+
+        if (delta_theta > 5)
+        {
+            turnLeftSamePlace();
+        }
+        else if (delta_theta < -5)
+        {
+            turnRightSamePlace();
+        }
+        else
+        {
+            stop();
+        }
+
+    }
+
+    void moveToPosition(float x, float y, float threshold=10.0)
+    {
+        // Write the target position to target_x and target_y
+        target_x = x;
+        target_y = y;
+        
+        // Head towards the target position
+        target_theta = atan2(target_y - current_y, target_x - current_x) * 180 / PI;
+        turnToHeading(target_theta);
+        
+        // Move forward
+        if (((current_x - target_x) * (current_x - target_x) + (current_y - target_y) * (current_y - target_y) > threshold * threshold))
+        {
+            moveForward();
+        }
+        else
+        {
+            stop();
+        }
+    }
+
 };
 
 #endif

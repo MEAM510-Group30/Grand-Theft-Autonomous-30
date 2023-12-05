@@ -46,6 +46,9 @@ Sensors sensors = Sensors();
 // the behavior tree and the action object
 Behavior behavior = Behavior();
 
+// communication
+// Communication communication = Communication();
+
 void setup() {
     Serial.begin(115200);
 }
@@ -104,6 +107,14 @@ void loop() {
     
 
     // sensor reading and global variables updating
+    sensors.updateEncoder();
+    sensors.updateVive();
+    // behavior.updateBehaviorClassHTMLVariables(html_state, html_manual_direction, html_if_jaw_open, html_speed, html_turn_rate);
+    // behavior.updateBehaviorClassSensorVariables(tof_front, tof_left,
+    //                                             sensors.vive_x_mm, sensors.vive_y_mm, sensors.vive_theta, 
+    //                                             police_x_mm, police_y_mm, trophy_direction);
+
+    
 
 
     // run behavior tree, generate action list
