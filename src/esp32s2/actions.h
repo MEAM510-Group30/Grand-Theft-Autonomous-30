@@ -7,9 +7,10 @@
 
         This file defines functions for all kinds of actions.
 
-        Two layers of actions should be defined here:
+        Three layers of actions should be defined here:
             1. Basic actions, like specifying motor speed, servo angle, etc.
-            2. Upper-layer actions, like moving, turning, etc, which are combinations of basic actions.
+            2. Medium-layer actions, like moving, turning, etc, which are combinations of basic actions.
+            2. Upper-layer actions, like wall following, car pushing, etc.
 
 */
 
@@ -92,19 +93,36 @@ public:
     Servo SERVO_IR;  // = Servo(180, SERVO_IR_PWM, LEDC_CHA_3, LEDC_RES_BITS, LEDC_FREQ);
 
     // PID class
-    PIDController PID_L; // = PIDController(2.0, 0.3, 0.001);
-    PIDController PID_R; // = PIDController(2.0, 0.3, 0.001);
+    PIDController PID_L; // = PIDController(kp=15.0, ki=0.05, kd=0.05);
+    PIDController PID_R; // = PIDController(kp=15.0, ki=0.05, kd=0.05);
+    PIDController PID_wall;
+    // PIDController PID_pos_x;
+    // PIDController PID_pos_y;
 
     // Actual speedL/R in mm/s, this should be updated by main in every loop
     float ACTUAL_SPEED_L;
     float ACTUAL_SPEED_R;
+
+    // ToF values, in mm
+    int tof_side;
+    int tof_front;
+
+    // Position values, in mm
+    float current_x;
+    float current_y;
+    float current_theta;
+    float target_x;
+    float target_y;
+    float target_theta;
 
     // Constructor with initialization list
     Actions() : MOTOR_L(MOTOR_L_PWM, MOTOR_L_DIR1, MOTOR_L_DIR2, LEDC_CHA_0, LEDC_RES_BITS, LEDC_FREQ),
                 MOTOR_R(MOTOR_R_PWM, MOTOR_R_DIR1, MOTOR_R_DIR2, LEDC_CHA_1, LEDC_RES_BITS, LEDC_FREQ),
                 SERVO_JAW(180, SERVO_JAW_PWM, LEDC_CHA_2, LEDC_RES_BITS, LEDC_FREQ),
                 SERVO_IR(180, SERVO_IR_PWM, LEDC_CHA_3, LEDC_RES_BITS, LEDC_FREQ),
-                PID_L(2.0, 0.3, 0.001), PID_R(2.0, 0.3, 0.001),
+                PID_L(), PID_R(),                       // use the default PID parameters in control.h for speed control
+                PID_wall(kp = 0.1, ki = 0.0, kd = 0.0), // wall following PID parameters
+                // PID_pos_x(kp = 0.1, ki = 0.0, kd = 0.0), PID_pos_y(kp = 0.1, ki = 0.0, kd = 0.0),
                 ACTUAL_SPEED_L(0), ACTUAL_SPEED_R(0),
                 moveActionMode(STOP), jawActionMode(JAW_HOLD),
                 html_speed(0), html_turnRate(50),
@@ -146,6 +164,18 @@ public:
         // Should be called by mainloop/behavior.h every time before using html_speed and html_turnRate
         html_speed = speed;
         html_turnRate = turnRate;
+    }
+
+    void updateActualSpeed(float speed_L, float speed_R)
+    {
+        // Should be called in main loop before using actual speed (eg. in PID) every time
+        ACTUAL_SPEED_L = speed_L;
+        ACTUAL_SPEED_R = speed_R;
+    }
+
+    void updateToFValues(int tof_side, int tof_front)
+    {
+        // Should be called in main loop before using tof values every time
     }
 
     // --- Medium-layer motor actions ---
@@ -307,11 +337,23 @@ public:
 
     void turnLeftSamePlace(int speed) // turn left without moving forward or backward
     {
-        // speed itself can be positive or negative
+        // speed (duty cycle) itself can be positive or negative
         // here we want the car turn left regardless of the +/- sign of speed
         desSpeedL = -abs(speed);
         desSpeedR = abs(speed);
+
+        // Serial.print('\n');
+        // Serial.print(desSpeedL);
+        // Serial.print('\t');
+        // Serial.print(desSpeedR);
+
         PIDSpeedCalibration();
+
+        // Serial.print('\n');
+        // Serial.print(PIDSpeedL);
+        // Serial.print('\t');
+        // Serial.print(PIDSpeedR);
+
         setMotorSpeed(MOTOR_L, -abs(PIDSpeedL));
         setMotorSpeed(MOTOR_R, abs(PIDSpeedR));
         moveActionMode = SAME_PLACE_LEFT;
@@ -333,6 +375,12 @@ public:
         // here we want the car turn right regardless of the +/- sign of speed
         desSpeedL = abs(speed);
         desSpeedR = -abs(speed);
+
+        // Serial.print('\n');
+        // Serial.print(desSpeedL);
+        // Serial.print('\t');
+        // Serial.print(desSpeedR);
+
         PIDSpeedCalibration();
         setMotorSpeed(MOTOR_L, abs(PIDSpeedL));
         setMotorSpeed(MOTOR_R, -abs(PIDSpeedR));
@@ -349,12 +397,6 @@ public:
         moveActionMode = SAME_PLACE_RIGHT;
     }
 
-    void updateActualSpeed(float speed_L, float speed_R) // should be called in main loop before using actual speed (eg. in PID) every time
-    {
-        ACTUAL_SPEED_L = speed_L;
-        ACTUAL_SPEED_R = speed_R;
-    }
-
     void PIDSpeedCalibration() // This function generates the des speed for left and right wheels in duty cycles
     {
         // This function reads the movement status, the speed, and the turn rate, and calculates the desired speed for left and right wheels
@@ -366,6 +408,11 @@ public:
         // Considering the friction, we can assume that the actual speed in mm/s is 0.08 times the duty cycle
         float desSpeedL_mm_s = (float)desSpeedL * 0.08;
         float desSpeedR_mm_s = (float)desSpeedR * 0.08;
+
+        // Serial.print('\n');
+        // Serial.print(desSpeedL_mm_s);
+        // Serial.print('\t');
+        // Serial.print(desSpeedR_mm_s);
 
         PIDSpeedL = PID_L.PID(desSpeedL_mm_s, ACTUAL_SPEED_L);
         PIDSpeedR = PID_R.PID(desSpeedR_mm_s, ACTUAL_SPEED_R);
@@ -397,9 +444,77 @@ public:
 
     void followWallForward()
     {
-        // TODO
-        ;
+        // Wall following PID uses the distance to the wall as input,
+        // a constant distance (200mm) as the reference,
+        // and the output is the error in desSpeed for left and right wheels
+
+        // As we want the side ToF sensor to be at the left side of the robot,
+        // if the robot is too close to the wall, the left wheel should rotate faster,
+        // if the robot is too far from the wall, the right wheel should rotate faster.
+
+        float refernce_distance = 150; // mm
+
+        float LminusR = PID_wall.PID(refernce_distance, tof_side); // duty cycle
+        float LplusR = 2 * html_speed;                             // duty cycle
+        desSpeedL = (LplusR + LminusR) / 2;
+        desSpeedR = (LplusR - LminusR) / 2;
+
+        PIDSpeedCalibration();
+        setMotorSpeed(MOTOR_L, PIDSpeedL);
+        setMotorSpeed(MOTOR_R, PIDSpeedR);
     }
+
+    void turnToHeading(float heading)
+    {
+        // Turn to the specified heading
+        // The heading is in degrees, and 0 degree is the x+ axis
+
+        float delta_theta = heading - current_theta;
+        if (delta_theta > 180)
+        {
+            delta_theta -= 360;
+        }
+        else if (delta_theta < -180)
+        {
+            delta_theta += 360;
+        }
+
+        if (delta_theta > 5)
+        {
+            turnLeftSamePlace();
+        }
+        else if (delta_theta < -5)
+        {
+            turnRightSamePlace();
+        }
+        else
+        {
+            stop();
+        }
+
+    }
+
+    void moveToPosition(float x, float y, float threshold=10.0)
+    {
+        // Write the target position to target_x and target_y
+        target_x = x;
+        target_y = y;
+        
+        // Head towards the target position
+        target_theta = atan2(target_y - current_y, target_x - current_x) * 180 / PI;
+        turnToHeading(target_theta);
+        
+        // Move forward
+        if (((current_x - target_x) * (current_x - target_x) + (current_y - target_y) * (current_y - target_y) > threshold * threshold))
+        {
+            moveForward();
+        }
+        else
+        {
+            stop();
+        }
+    }
+
 };
 
 #endif

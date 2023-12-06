@@ -87,16 +87,16 @@ private:
         }
     }
 
-    bool atDesiredOrientation(float desired_theta) // alsolute angle from vive, currently unable to deal with overshot
+    bool compareOrientation(float desired_theta, float current_theta) // alsolute angle from vive, currently unable to deal with overshot
     {
         float threshold = 5.0; // degree, to be tuned
-        return (abs(vive_theta - desired_theta) <= threshold);
+        return (abs(current_theta - desired_theta) < threshold);
     }
 
-    bool atDesiredPosition(float desired_x, float desired_y) // alsolute position from vive, currently unable to deal with overshot
+    bool comparePosition(float desired_x, float desired_y, float current_x, float current_y) // alsolute position from vive, currently unable to deal with overshot
     {
         float threshold = 10.0; // mm, to be tuned
-        return (abs(vive_x - desired_x) <= threshold) && (abs(vive_y - desired_y) <= threshold);
+        return ((current_x - desired_x) * (current_x - desired_x) + (current_y - desired_y) * (current_y - desired_y) <= threshold * threshold);
     }
 
     // Private methods for each behavior mode
@@ -108,17 +108,18 @@ private:
 
     void wallFollowing() // Logic for wall-following mode
     {
-        uint8_t dist_to_turn_thres = 150; // distance threshold to turn at the corner, mm
+        uint8_t dist_to_turn_thres = 350; // distance threshold to turn at the corner, mm
         float previous_wall_theta;        // to record present theta when finish turning
 
         if (tof_front <= dist_to_turn_thres && !needTurnFlag) // if front distance is too small, turn right
         {
             needTurnFlag = true;
         }
-        if (atDesiredOrientation(previous_wall_theta + 90) && needTurnFlag) // if finish turning, set needTurnFlag to false
+        if (atDesiredOrientation(previous_wall_theta + 90) && needTurnFlag) // if finish turning, set needTurnFlag to false, and reset PID
         {
             needTurnFlag = false;
             previous_wall_theta = vive_theta;
+            action.PID_wall.resetPID();
         }
         if (needTurnFlag) // if need to turn, turn right at the same place
         {
@@ -126,6 +127,7 @@ private:
         }
         if (!needTurnFlag) // if don't need to turn, follow the wall, and keep updating previous_wall_theta
         {
+
             action.followWallForward();
             previous_wall_theta = vive_theta;
         }
@@ -136,6 +138,40 @@ private:
     void carPushing()
     {
         // Logic for car-pushing mode
+        if (!carPushingInitFlag) // if not initialized, initialize
+        {
+            carPushingInitFlag = true;
+            // Push the police car 400 mm along x+, set the target position
+            push_target_x = police_x + 400; // target x coordinate, mm
+            push_target_y = police_y;       // target y coordinate, mm
+            action.releaseTrophy();
+        }
+
+        if (comparePosition(push_target_x, push_target_y, police_x, police_y)) // if at the target position, stop pushing and do nothing
+        {
+            action.stop();
+            carPushingInitFlag = false;
+            current_mode = NOTHING;
+        }
+        else // if not at the target position, push the car
+        {
+            // TODO: how to push the car
+            // More specifically:
+            //   how to approach the car
+            //   how to check if the car derivates from the line
+            //   how to recalculate the direction
+            //   how to realign
+
+            // Approach the car
+            if (!carPushingApproachCarFlag)
+            {
+                // generate target position
+                approach_target_x = police_x - 200;
+                approach_target_y = police_y;
+                approach_target_theta = 0;
+                action.moveToPosition(approach_target_x, approach_target_y);
+            }
+        }
     }
 
     void trophyMoving()
@@ -182,19 +218,28 @@ public:
     Mode current_mode; // Initial mode
     Actions action;    // Action object
 
-    bool needTurnFlag; // for wall following
+    // Task variables
+    bool needTurnFlag;       // for wall following
+    bool carPushingInitFlag; // for car pushing
+    bool carPushingApproachCarFlag; // for car pushing
+    int push_target_x;       // for car pushing
+    int push_target_y;       // for car pushing
+    int approach_target_x;   // for car pushing
+    int approach_target_y;   // for car pushing
+    float approach_target_theta; // for car pushing
 
-    // sensors
+    // Sensors
+    // Note that all coordinate and distance values here should be in mm
     uint8_t tof_front;    // front TOF value, mm
     uint8_t tof_left;     // left TOF value, mm
-    int vive_x;           // vive x coordinate, mm
-    int vive_y;           // vive y coordinate, mm
-    int vive_theta;       // vive heading, degree
+    float vive_x;           // vive x coordinate, mm
+    float vive_y;           // vive y coordinate, mm
+    float vive_theta;       // vive heading, degree
     int police_x;         // police car x coordinate, mm
     int police_y;         // police car y coordinate, mm
     int trophy_direction; // trophy direction, degree
 
-    // html
+    // HTML
     char html_state;            // html state, 'a' for auto, 'w' for wall, 'p' for push, 't' for trophy, 'm' for manual, 'n' for nothing
     char html_manual_direction; // html manual direction, 'f' for forward, 'b' for backward, 'l' for left, 'r' for right, 'o' for stop
     bool html_jaw_open;         // html jaw, true for open, false for close
@@ -204,10 +249,15 @@ public:
     // Constructor, copy constructor and destructor
     Behavior() : current_mode(NOTHING),
                  action(),
+
                  needTurnFlag(false),
+                 carPushingInitFlag(false), carPushingApproachCarFlag(false),
+                 push_target_x(0), push_target_y(0),
+
                  tof_front(0), tof_left(0),
                  vive_x(0), vive_y(0), vive_theta(0),
                  police_x(0), police_y(0), trophy_direction(0),
+
                  html_state('n'), html_manual_direction('o'), html_jaw_open(false),
                  html_speed(0), html_turn_rate(0)
     {

@@ -30,6 +30,8 @@ private:
     float error_previous;
     float integral;
     float derivative;
+    float time_current_ms;
+    float time_previous_ms;
 
     float PIDSaturation(float PID_output, float upper_bound = 4095, float lower_bound = -4095)
     {
@@ -55,12 +57,14 @@ public:
     // PID output
     float output;
     
-    // Constructor
-    PIDController(float kp, float ki, float kd)
+    // Constructor, default parameters are: kp=2.0, ki=0.3, kd=0.001
+    PIDController(float kp=15.0, float ki=0.05, float kd=0.05)
     {
         this->kp = kp;
         this->ki = ki;
         this->kd = kd;
+        time_current_ms = (float) millis();
+        time_previous_ms = (float) millis();
     }
 
     // Destructor
@@ -69,31 +73,51 @@ public:
     // Template PID control function
     float PID(float reference, float actual)
     {
+        time_current_ms = (float) millis();
+        float time_delta_ms = time_current_ms - time_previous_ms;
+        // Serial.print(time_delta_ms);
+
         // Calculate error
         error = reference - actual;
 
-        // Intergral reset when error changes sign
-        if (error * error_previous < 0)
-        {
-            integral = 0;
-        }
-
         // Calculate integral
-        integral += error;
+        integral += error * time_delta_ms;
+
+        // Intergral anti-saturation
+        // if (error * error_previous < 0) integral = 0;
+        if (integral > 20000) integral = 20000;
+        if (integral < -20000) integral = -20000;
+
+        // // Calculate integral, and only update integral value when error is small
+        // if (abs(error) < 100) integral += error;
 
         // Calculate derivative
-        derivative = error - error_previous;
-
+        derivative = (error - error_previous) / time_delta_ms;
+        
         // Calculate output
         // output = kp * error + ki * integral + kd * derivative;
         output = kp * error + ki * integral + constrain(kd * derivative, -0.1 * kp * error, 0.1 * kp * error);
 
-        // Update error_previous
+        // Update previous
         error_previous = error;
+        time_previous_ms = time_current_ms;
 
         output = PIDSaturation(output);
 
+        // Serial.print('\t');
+        // Serial.print(integral);
+
         return output;
+    }
+
+    void resetPID()
+    {
+        error = 0;
+        error_previous = 0;
+        integral = 0;
+        derivative = 0;
+        time_current_ms = (float) millis();
+        time_previous_ms = (float) millis();
     }
 
     // Control functions

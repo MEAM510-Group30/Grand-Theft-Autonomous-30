@@ -53,13 +53,17 @@ public:
 
     // Vive values
     int vive1_x;
+    float vive1_x_mm;
     int vive1_y;
+    float vive1_y_mm;
     int vive2_x;
+    float vive2_x_mm;
     int vive2_y;
+    float vive2_y_mm;
 
     // position calculated from vive values
-    float vive_x; // in mm
-    float vive_y; // in mm
+    float vive_x_mm;
+    float vive_y_mm;
     // orientation calculated from vive values
     float vive_theta; // in degrees
 
@@ -69,7 +73,8 @@ public:
                 encoder_L_val_previous(0), encoder_R_val_previous(0),
                 speed_L(0.0), speed_R(0.0),
                 count_speed_L(0.0), count_speed_R(0.0),
-                vive1_x(0), vive1_y(0), vive2_x(0), vive2_y(0)
+                vive1_x(0), vive1_y(0), vive2_x(0), vive2_y(0),
+                vive_x(0), vive_y(0), vive_x_mm(0.0), vive_y_mm(0.0), vive_theta(0.0)
     {
         ESP32Encoder::useInternalWeakPullResistors = UP;
         encoder_L.attachFullQuad(ENCODER_L_A, ENCODER_L_B);
@@ -125,25 +130,58 @@ public:
         {
             vive2.sync(15);
         }
+        
+        vive1_x_mm = calculateXCoordInMillimeters(vive1_x, vive1_y);
+        vive1_y_mm = calculateYCoordInMillimeters(vive1_x, vive1_y);
+        vive2_x_mm = calculateXCoordInMillimeters(vive2_x, vive2_y);
+        vive2_y_mm = calculateYCoordInMillimeters(vive2_x, vive2_y);
+        
+        calculateVivePosition();  // update vive_x_mm and vive_y_mm
+        calculateViveOrientation();  // update vive_theta
     }
 
     void calculateViveOrientation()
     {
-        updateVive();
         // TODO: calculate vive orientation
         // Here we assume that the two vive sensors are symmetricly located on the left and right side of the robot
         // So when we select x+ axis as 0 degree, the heading of the robot is
+
     }
 
     void calculateVivePosition()
     {
-        updateVive();
-
-        // TODO: calculate vive position
+        // Calculate vive position
         // Here we assume that the two vive sensors are symmetricly located on the left and right side of the robot
         // So the center of the robot is the midpoint of the two vive sensors
-        vive_x = (vive1_x + vive2_x) / 2;
-        vive_y = (vive1_y + vive2_y) / 2;
+        vive_x_mm = (vive1_x_mm + vive2_x_mm) / 2;
+        vive_y_mm = (vive1_y_mm + vive2_y_mm) / 2;
+    }
+
+    float calculateXCoordInMillimeters(int vive_coord_x, int vive_coord_y)
+    {
+        // Compute the actual position in millimeters
+        int x_min = 1500;
+        int delta_x = 4400;
+        int L_x = 3556; // mm
+
+        float x_mm = (float) ((vive_coord_x - x_min) * L_x) / (float) delta_x;
+        return x_mm;
+    }
+
+    float calculateYCoordInMillimeters(int vive_coord_x, int vive_coord_y)
+    {
+        // Compute the actual position in millimeters
+        int x_min = 1500;
+        int y_min_1 = 2700;
+        int y_min_2 = 2900;
+        int delta_x = 4400;
+        int delta_y = 2200;
+        int L_x = 3556; // mm
+        int L_y = 1778; // mm
+
+        int y_min_ = (vive_coord_x - x_min) * (y_min_2 - y_min_1) / delta_x + y_min_1;
+        float y_mm = (float) ((vive_coord_y - y_min_) * L_y) / (float) delta_y;
+        return y_mm;
     }
 
     bool atDesiredOrientation(float desired_theta) // alsolute angle from vive, currently unable to deal with overshot
@@ -160,12 +198,6 @@ public:
         return (abs(vive_x - desired_x) <= threshold) && (abs(vive_y - desired_y) <= threshold);
     }
 
-    void followWall()
-    {
-        // TODO: move ahead while trying to keep a constant distance to the wall
-        // both vive and tof sensors can be used
-        ;
-    }
 };
 
 #endif

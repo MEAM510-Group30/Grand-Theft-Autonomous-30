@@ -22,7 +22,7 @@
 
 #include "control.h"
 
-#include "communication.h"
+// #include "communication.h"
 
 #include "s2_sensors.h"
 
@@ -46,6 +46,9 @@ Sensors sensors = Sensors();
 // the behavior tree and the action object
 Behavior behavior = Behavior();
 
+// communication
+// Communication communication = Communication();
+
 void setup() {
     Serial.begin(115200);
 }
@@ -60,14 +63,28 @@ void loop() {
     // actions.setMotorSpeed(actions.MOTOR_L, 3000);  // left wheel
 
     sensors.updateEncoder();
+    actions.updateActualSpeed(sensors.speed_L, sensors.speed_R);
+
+    // behavior.updateBehaviorClassHTMLVariables(...);
+    // behavior.updateBehaviorClassSensorVariables(...);
+    // behavior.action.updateHTMLData(...);
+    // behavior.action.updateActualSpeed(...);
 
     // must be called before taking actions that uses PID speed control
     actions.updateActualSpeed(sensors.speed_L, sensors.speed_R);
+
+    actions.turnLeftSamePlace(4000);
+    // actions.MOTOR_L.setSpeed(2000);
+    // actions.MOTOR_R.setSpeed(-2000);
 
     Serial.print('\n');
     Serial.print(sensors.speed_L);
     Serial.print('\t');
     Serial.print(sensors.speed_R);
+    Serial.print('\t');
+    Serial.print(actions.PIDSpeedL);
+    Serial.print('\t');
+    Serial.print(actions.PIDSpeedR);
 
     // actions.moveBackward(-2000);
     
@@ -81,7 +98,7 @@ void loop() {
     // Serial.print('\t');
     // Serial.print(sensors.vive2_y);
 
-    delay(200);
+    delay(50);
 
     // ### Main Code ###
     // should comment all other test code when using
@@ -90,6 +107,14 @@ void loop() {
     
 
     // sensor reading and global variables updating
+    sensors.updateEncoder();
+    sensors.updateVive();
+    // behavior.updateBehaviorClassHTMLVariables(html_state, html_manual_direction, html_if_jaw_open, html_speed, html_turn_rate);
+    // behavior.updateBehaviorClassSensorVariables(tof_front, tof_left,
+    //                                             sensors.vive_x_mm, sensors.vive_y_mm, sensors.vive_theta, 
+    //                                             police_x_mm, police_y_mm, trophy_direction);
+
+    
 
 
     // run behavior tree, generate action list
