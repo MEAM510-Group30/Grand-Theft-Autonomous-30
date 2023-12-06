@@ -1,3 +1,6 @@
+#ifndef BODY_H
+#define BODY_H
+
 const char body[] PROGMEM = R"===(
 <!-- 
   ### Don't forget to update the body.h file every time this file is modified! ###
@@ -417,3 +420,5 @@ const char body[] PROGMEM = R"===(
 
 </html>
 )===";
+
+#endif
