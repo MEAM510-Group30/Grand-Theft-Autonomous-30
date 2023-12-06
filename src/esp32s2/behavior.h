@@ -108,14 +108,14 @@ private:
 
     void wallFollowing() // Logic for wall-following mode
     {
-        uint8_t dist_to_turn_thres = 350; // distance threshold to turn at the corner, mm
+        int dist_to_turn_thres = 350; // distance threshold to turn at the corner, mm
         float previous_wall_theta;        // to record present theta when finish turning
 
         if (tof_front <= dist_to_turn_thres && !needTurnFlag) // if front distance is too small, turn right
         {
             needTurnFlag = true;
         }
-        if (atDesiredOrientation(previous_wall_theta + 90) && needTurnFlag) // if finish turning, set needTurnFlag to false, and reset PID
+        if (compareOrientation(previous_wall_theta + 90, vive_theta) && needTurnFlag) // if finish turning, set needTurnFlag to false, and reset PID
         {
             needTurnFlag = false;
             previous_wall_theta = vive_theta;

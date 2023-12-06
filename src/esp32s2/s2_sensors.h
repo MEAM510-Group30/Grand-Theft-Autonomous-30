@@ -74,7 +74,7 @@ public:
                 speed_L(0.0), speed_R(0.0),
                 count_speed_L(0.0), count_speed_R(0.0),
                 vive1_x(0), vive1_y(0), vive2_x(0), vive2_y(0),
-                vive_x(0), vive_y(0), vive_x_mm(0.0), vive_y_mm(0.0), vive_theta(0.0)
+                vive_x_mm(0.0), vive_y_mm(0.0), vive_theta(0.0)
     {
         ESP32Encoder::useInternalWeakPullResistors = UP;
         encoder_L.attachFullQuad(ENCODER_L_A, ENCODER_L_B);
@@ -108,8 +108,8 @@ public:
 
     void updateVive() // should be called in main loop before using vive values every time
     {
-        Serial.print(vive1.status());
-        Serial.print('\t');
+        // Serial.print(vive1.status());
+        // Serial.print('\t');
         if (vive1.status() == VIVE_RECEIVING) // if vive receives signal
         {
             vive1_x = vive1.xCoord();
@@ -119,8 +119,8 @@ public:
         {
             vive1.sync(15);
         }
-        Serial.print(vive2.status());
-        Serial.print('\n');
+        // Serial.print(vive2.status());
+        // Serial.print('\n');
         if (vive2.status() == VIVE_RECEIVING)
         {
             vive2_x = vive2.xCoord();
@@ -184,18 +184,18 @@ public:
         return y_mm;
     }
 
-    bool atDesiredOrientation(float desired_theta) // alsolute angle from vive, currently unable to deal with overshot
+    bool atDesiredOrientation(float desired_theta, float threshold = 5.0) // alsolute angle from vive, currently unable to deal with overshot
     {
         calculateViveOrientation();
-        float threshold = 1.0; // degree, to be tuned
+        // float threshold = 5.0; // degree, to be tuned
         return (abs(vive_theta - desired_theta) <= threshold);
     }
 
-    bool atDesiredPosition(float desired_x, float desired_y) // alsolute position from vive, currently unable to deal with overshot
+    bool atDesiredPosition(float desired_x, float desired_y, float threshold = 10.0) // alsolute position from vive, currently unable to deal with overshot
     {
         calculateVivePosition();
-        float threshold = 10.0; // mm, to be tuned
-        return (abs(vive_x - desired_x) <= threshold) && (abs(vive_y - desired_y) <= threshold);
+        // float threshold = 10.0; // mm, to be tuned
+        return (abs(vive_x_mm - desired_x) <= threshold) && (abs(vive_y_mm - desired_y) <= threshold);
     }
 
 };

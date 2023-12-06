@@ -121,7 +121,7 @@ public:
                 SERVO_JAW(180, SERVO_JAW_PWM, LEDC_CHA_2, LEDC_RES_BITS, LEDC_FREQ),
                 SERVO_IR(180, SERVO_IR_PWM, LEDC_CHA_3, LEDC_RES_BITS, LEDC_FREQ),
                 PID_L(), PID_R(),                       // use the default PID parameters in control.h for speed control
-                PID_wall(kp = 0.1, ki = 0.0, kd = 0.0), // wall following PID parameters
+                PID_wall(0.1, 0.0, 0.0), // wall following PID parameters
                 // PID_pos_x(kp = 0.1, ki = 0.0, kd = 0.0), PID_pos_y(kp = 0.1, ki = 0.0, kd = 0.0),
                 ACTUAL_SPEED_L(0), ACTUAL_SPEED_R(0),
                 moveActionMode(STOP), jawActionMode(JAW_HOLD),
