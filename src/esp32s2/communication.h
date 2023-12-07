@@ -208,82 +208,98 @@ commun_Actions web_commun::action = commun_STOP;
 int web_commun::speed = 0;
 int web_commun::turnRate = 50;
 
-class UDP_broadcast
-{ // use mamber function sendXY to broadcast
+class UDP_broadcast {  // use mamber function sendXY to broadcast
 public:
-    int signalPin1 = 8; // GPIO pin receiving signal from Vive circuit
-    int signalPin2 = 18;
+  int signalPin1 = 8;  // GPIO pin receiving signal from Vive circuit
+  int signalPin2 = 18;
 
-    WiFiUDP UDPServer;
-    const char *ssid = "TP-Link_FD24";
-    const char *password = "65512111";
-    IPAddress target; // broadcast mode is 255
-    IPAddress myIP;   // change our IP
-    char udpBuffer[14];
-    int GroupNumber = 30;
+  WiFiUDP UDPServer;
+  const char *ssid = "TP-Link_FD24";
+  const char *password = "65512111";
+  IPAddress target;  // broadcast mode is 255
+  IPAddress myIP;    // change our IP
+  IPAddress gateway_IP = IPAddress(192, 168, 4, 1);
+  IPAddress subnet_IP = IPAddress(255, 255, 255, 0);
+  WiFiServer server;
+  char udpBuffer[20];
+  char packetBuffer[20];
+  int GroupNumber = 30;
+  const int UDP_PACKET_SIZE = 20;
 
-    UDP_broadcast()
-    {
-        Serial.begin(115200);
+  UDP_broadcast(IPAddress IP):server(80) {
+    target = IPAddress(192, 168, 1, 255);
+    myIP = IP;
+  }
 
-        target = (192, 168, 1, 255);
-        myIP = (192, 168, 1, 57);
+  ~UDP_broadcast() {}
 
-        WiFi.begin(ssid, password);
+  void initialBroadcast(){
+    Serial.begin(115200);
+    WiFi.mode(WIFI_AP);  // wifi in ap mode, no router
+    WiFi.softAPConfig(myIP, gateway_IP, subnet_IP);
+    WiFi.softAP(ssid, password);
 
-        WiFi.config(myIP,                         // device IP address
-                    IPAddress(192, 168, 1, 1),    // gateway (not used)
-                    IPAddress(255, 255, 255, 0)); // netmask
+    IPAddress softAP_IP = WiFi.softAPIP();
+    Serial.print("\n AP IP address: HTML//");
+    Serial.print(softAP_IP);
+    Serial.print("\n SSID: ");
+    Serial.print(ssid);
+    Serial.print("\n Password: ");
+    Serial.print(password);
 
-        UDPServer.begin(2808); // 2808 arbitrary UDP port#
-        while (WiFi.status() != WL_CONNECTED)
-        {
-            delay(500);
-            Serial.print(".");
-        }
-        Serial.printf("WiFi connected to %s", ssid);
-        Serial.print("Sending messages from ");
-        Serial.print(myIP);
-        Serial.print(" to ");
-        Serial.println(target);
+    server.begin();
+
+    UDPServer.begin(2808);  // 2808 arbitrary UDP port#
+  }
+
+  void sendXY(int x, int y) {  // use in main function to broadcast XY
+    std::sprintf(udpBuffer, "%02d,%04d,%04d", GroupNumber, x, y);
+    UDPServer.beginPacket(target, 2808);  // send to UDPport 2808
+    UDPServer.printf("%s", udpBuffer);
+    UDPServer.endPacket();
+    Serial.println(udpBuffer);
+  }
+
+  void handleUDPServer() {
+    int cb = UDPServer.parsePacket();
+    if (cb) {
+      UDPServer.read(packetBuffer, UDP_PACKET_SIZE - 1);
+      Serial.println(packetBuffer);
+      return;
     }
-
-    ~UDP_broadcast() {}
-
-    void sendXY(int x, int y)
-    { // use in main function to broadcast XY
-        std::sprintf(udpBuffer, "%02d,%04d,%04d", GroupNumber, x, y);
-        UDPServer.beginPacket(target, 2808); // send to UDPport 2808
-        UDPServer.printf("%s", udpBuffer);
-        UDPServer.endPacket();
-        Serial.println(udpBuffer);
-    }
+    Serial.println("no data received");
+  }
 };
 
-class Serial_commun {
+class Serial_commun
+{ // use this class in main to communicate between two boards. to initialize, give tx and rx
 public:
-  String message;
-  SoftwareSerial softSerial;
+    String message;
+    SoftwareSerial softSerial;
 
-  Serial_commun(int RX_PIN, int TX_PIN)
-    : softSerial(RX_PIN, TX_PIN) {
-    Serial.begin(115200);
-    softSerial.begin(9600);
-  }
-
-  ~Serial_commun() {}
-
-  void read() {
-    if (softSerial.available()) {
-      message = softSerial.readString();
-      Serial.println("Received message on ESP32 2: " + message);
+    Serial_commun(int RX_PIN, int TX_PIN)
+        : softSerial(RX_PIN, TX_PIN)
+    {
+        Serial.begin(115200);
+        softSerial.begin(9600);
     }
-  }
 
-  void write(String wr_message) {
-    Serial.println("Sending message: " + wr_message);
-    softSerial.println(wr_message);
-  }
+    ~Serial_commun() {}
+
+    void read()
+    {
+        if (softSerial.available())
+        {
+            message = softSerial.readString();
+            Serial.println("Received message on ESP32 2: " + message);
+        }
+    }
+
+    void write(String wr_message)
+    {
+        Serial.println("Sending message: " + wr_message);
+        softSerial.println(wr_message);
+    }
 };
 
 #endif
