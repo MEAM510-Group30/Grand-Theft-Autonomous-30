@@ -54,71 +54,76 @@ void setup() {
 }
 
 void loop() {
-    // ### Motor Test Code ###
-    // should always be commented when not testing
-    // should comment all other code when testing
+    // // ### Motor Test Code ###
+    // // should always be commented when not testing
+    // // should comment all other code when testing
     
-    // actions.moveForward(1000);
-    // actions.setMotorSpeed(actions.MOTOR_R, 3000);  // right wheel
-    // actions.setMotorSpeed(actions.MOTOR_L, 3000);  // left wheel
-
-    sensors.updateEncoder();
-    actions.updateActualSpeed(sensors.speed_L, sensors.speed_R);
-
-    // behavior.updateBehaviorClassHTMLVariables(...);
-    // behavior.updateBehaviorClassSensorVariables(...);
-    // behavior.action.updateHTMLData(...);
-    // behavior.action.updateActualSpeed(...);
-
-    // must be called before taking actions that uses PID speed control
-    actions.updateActualSpeed(sensors.speed_L, sensors.speed_R);
-
-    actions.turnLeftSamePlace(4000);
-    // actions.MOTOR_L.setSpeed(2000);
-    // actions.MOTOR_R.setSpeed(-2000);
-
-    Serial.print('\n');
-    Serial.print(sensors.speed_L);
-    Serial.print('\t');
-    Serial.print(sensors.speed_R);
-    Serial.print('\t');
-    Serial.print(actions.PIDSpeedL);
-    Serial.print('\t');
-    Serial.print(actions.PIDSpeedR);
-
-    // actions.moveBackward(-2000);
-    
-    // sensors.updateVive();
-    // Serial.print('\n');
-    // Serial.print(sensors.vive1_x);
-    // Serial.print('\t');
-    // Serial.print(sensors.vive1_y);
-    // Serial.print('\t');
-    // Serial.print(sensors.vive2_x);
-    // Serial.print('\t');
-    // Serial.print(sensors.vive2_y);
-
-    delay(50);
-
-    // ### Main Code ###
-    // should comment all other test code when using
-
-    // website cmd checking and global variables updating
-    
-
-    // sensor reading and global variables updating
-    sensors.updateEncoder();
+    // // actions.moveForward(1000);
+    // // actions.setMotorSpeed(actions.MOTOR_R, 3000);  // right wheel
+    // // actions.setMotorSpeed(actions.MOTOR_L, 3000);  // left wheel
     sensors.updateVive();
-    // behavior.updateBehaviorClassHTMLVariables(html_state, html_manual_direction, html_if_jaw_open, html_speed, html_turn_rate);
-    // behavior.updateBehaviorClassSensorVariables(tof_front, tof_left,
-    //                                             sensors.vive_x_mm, sensors.vive_y_mm, sensors.vive_theta, 
-    //                                             police_x_mm, police_y_mm, trophy_direction);
+    Serial.print('\n');
+    Serial.print(sensors.vive1_x);
+    Serial.print('\t');
+    Serial.print(sensors.vive1_y);
+    delay(200);
+    // sensors.updateEncoder();
+    // actions.updateActualSpeed(sensors.speed_L, sensors.speed_R);
+
+    // // behavior.updateBehaviorClassHTMLVariables(...);
+    // // behavior.updateBehaviorClassSensorVariables(...);
+    // // behavior.action.updateHTMLData(...);
+    // // behavior.action.updateActualSpeed(...);
+
+    // // must be called before taking actions that uses PID speed control
+    // actions.updateActualSpeed(sensors.speed_L, sensors.speed_R);
+
+    // actions.turnLeftSamePlace(4000);
+    // // actions.MOTOR_L.setSpeed(2000);
+    // // actions.MOTOR_R.setSpeed(-2000);
+
+    // Serial.print('\n');
+    // Serial.print(sensors.speed_L);
+    // Serial.print('\t');
+    // Serial.print(sensors.speed_R);
+    // Serial.print('\t');
+    // Serial.print(actions.PIDSpeedL);
+    // Serial.print('\t');
+    // Serial.print(actions.PIDSpeedR);
+
+    // // actions.moveBackward(-2000);
+    
+    // // sensors.updateVive();
+    // // Serial.print('\n');
+    // // Serial.print(sensors.vive1_x);
+    // // Serial.print('\t');
+    // // Serial.print(sensors.vive1_y);
+    // // Serial.print('\t');
+    // // Serial.print(sensors.vive2_x);
+    // // Serial.print('\t');
+    // // Serial.print(sensors.vive2_y);
+
+    // delay(50);
+
+    // // ### Main Code ###
+    // // should comment all other test code when using
+
+    // // website cmd checking and global variables updating
+    
+
+    // // sensor reading and global variables updating
+    // sensors.updateEncoder();
+    // sensors.updateVive();
+    // // behavior.updateBehaviorClassHTMLVariables(html_state, html_manual_direction, html_if_jaw_open, html_speed, html_turn_rate);
+    // // behavior.updateBehaviorClassSensorVariables(tof_front, tof_left,
+    // //                                             sensors.vive_x_mm, sensors.vive_y_mm, sensors.vive_theta, 
+    // //                                             police_x_mm, police_y_mm, trophy_direction);
 
     
 
 
-    // run behavior tree, generate action list
+    // // run behavior tree, generate action list
 
-    // 
+    // // 
 
 }
