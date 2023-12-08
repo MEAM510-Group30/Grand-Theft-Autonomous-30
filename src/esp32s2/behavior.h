@@ -93,9 +93,8 @@ private:
         return (abs(current_theta - desired_theta) < threshold);
     }
 
-    bool comparePosition(float desired_x, float desired_y, float current_x, float current_y) // alsolute position from vive, currently unable to deal with overshot
+    bool comparePosition(float desired_x, float desired_y, float current_x, float current_y, float threshold = 10.0) // alsolute position from vive, currently unable to deal with overshot
     {
-        float threshold = 10.0; // mm, to be tuned
         return ((current_x - desired_x) * (current_x - desired_x) + (current_y - desired_y) * (current_y - desired_y) <= threshold * threshold);
     }
 
@@ -159,7 +158,7 @@ private:
             carPushingInitFlag = false;
             carPushingApproachCarFlag = false;
             carPushingApproachAlignFlag = false;
-            
+
             current_mode = NOTHING;
             Serial.println("Push.Finished");
         }
@@ -167,10 +166,9 @@ private:
         {
             // TODO: how to push the car
             // More specifically:
-            //   how to approach the car
-            //   how to check if the car derivates from the line
-            //   how to recalculate the direction
-            //   how to realign
+            //   how to approach the car: moveTo function
+            //   how to check if the car derivates from the line: vector calculation
+            //   how to recalculate the direction and realign: repeat the approach and align process
 
             // Approach the car
             if (!carPushingApproachCarFlag)
@@ -181,7 +179,7 @@ private:
                 
                 action.moveToPosition(approach_target_x, approach_target_y);
                 Serial.println("Push.Approaching Car");
-                if (comparePosition(approach_target_x, approach_target_y, police_x, police_y))
+                if (comparePosition(approach_target_x, approach_target_y, police_x, police_y, 50.0))
                 {
                     carPushingApproachCarFlag = true;
                     Serial.println("Push.Approached Car");
