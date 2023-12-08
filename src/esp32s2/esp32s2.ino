@@ -54,19 +54,39 @@ void setup() {
 }
 
 void loop() {
-    // // ### Motor Test Code ###
-    // // should always be commented when not testing
-    // // should comment all other code when testing
+    // ### Motor Test Code ###
+
+    // should always be commented when not testing
+    // should comment all other code when testing
     
-    // // actions.moveForward(1000);
-    // // actions.setMotorSpeed(actions.MOTOR_R, 3000);  // right wheel
-    // // actions.setMotorSpeed(actions.MOTOR_L, 3000);  // left wheel
-    sensors.updateVive();
-    Serial.print('\n');
-    Serial.print(sensors.vive1_x);
-    Serial.print('\t');
-    Serial.print(sensors.vive1_y);
-    delay(200);
+    // actions.moveForward(1000);
+    // actions.setMotorSpeed(actions.MOTOR_R, 3000);  // right wheel
+    // actions.setMotorSpeed(actions.MOTOR_L, 3000);  // left wheel
+    
+    // ### Single Vive Test Code ###
+
+    // sensors.updateVive();
+    // Serial.print('\n');
+    // Serial.print(sensors.vive1_x);
+    // Serial.print('\t');
+    // Serial.print(sensors.vive1_y);
+    // delay(200);
+
+    // ### Dual Vive Test Code ###
+
+    // sensors.updateVive();
+    // Serial.print('\n');
+    // Serial.print(sensors.vive1_x);
+    // Serial.print('\t');
+    // Serial.print(sensors.vive1_y);
+    // Serial.print('\t');
+    // Serial.print(sensors.vive2_x);
+    // Serial.print('\t');
+    // Serial.print(sensors.vive2_y);
+    // delay(200);
+
+    // ### PID Same Place Turning Test Code ###
+
     // sensors.updateEncoder();
     // actions.updateActualSpeed(sensors.speed_L, sensors.speed_R);
 
@@ -92,20 +112,11 @@ void loop() {
     // Serial.print(actions.PIDSpeedR);
 
     // // actions.moveBackward(-2000);
-    
-    // // sensors.updateVive();
-    // // Serial.print('\n');
-    // // Serial.print(sensors.vive1_x);
-    // // Serial.print('\t');
-    // // Serial.print(sensors.vive1_y);
-    // // Serial.print('\t');
-    // // Serial.print(sensors.vive2_x);
-    // // Serial.print('\t');
-    // // Serial.print(sensors.vive2_y);
 
-    // delay(50);
+     delay(50);
 
     // // ### Main Code ###
+
     // // should comment all other test code when using
 
     // // website cmd checking and global variables updating
@@ -122,7 +133,7 @@ void loop() {
     
 
 
-    // // run behavior tree, generate action list
+    // // run behavior tree
 
     // // 
 

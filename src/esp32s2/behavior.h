@@ -144,6 +144,8 @@ private:
         if (!carPushingInitFlag) // if not initialized, initialize
         {
             carPushingInitFlag = true;
+            carPushingApproachCarFlag = false;
+            carPushingApproachAlignFlag = false;
             // Push the police car 400 mm along x+, set the target position
             push_target_x = police_x + 400; // target x coordinate, mm
             push_target_y = police_y;       // target y coordinate, mm
@@ -208,12 +210,12 @@ private:
 
                 // calculate the distance between the car and the center line
                 // if the car derivates from the line, repeat the approaching and aligning process
-                auto vec_cd[2] = {police_x - push_target_x, police_y - push_target_y}; // vector from the car to the target position
-                auto vec_rd[2] = {vive_x - push_target_x, vive_y - push_target_y}; // vector from the robot to the target position
+                float vec_cd[2] = {police_x - push_target_x, police_y - push_target_y}; // vector from the car to the target position
+                float vec_rd[2] = {vive_x - push_target_x, vive_y - push_target_y}; // vector from the robot to the target position
                 auto rd_dot_cd = vec_cd[0] * vec_rd[0] + vec_cd[1] * vec_rd[1]; // dot product of the two vectors
                 auto scalar = rd_dot_cd / (vec_rd[0] * vec_rd[0] + vec_rd[1] * vec_rd[1]); // scalar of the projection of vec_cd to vec_rd
-                auto vec_cd_prj_to_rd[2] = {scalar * vec_rd[0], scalar * vec_rd[1]}; // projection of vec_cd to vec_rd
-                auto vec_c_dist[2] = {vec_cd[0] - vec_cd_prj_to_rd[0], vec_cd[1] - vec_cd_prj_to_rd[1]}; // vector from the car to the center line
+                float vec_cd_prj_to_rd[2] = {scalar * vec_rd[0], scalar * vec_rd[1]}; // projection of vec_cd to vec_rd
+                float vec_c_dist[2] = {vec_cd[0] - vec_cd_prj_to_rd[0], vec_cd[1] - vec_cd_prj_to_rd[1]}; // vector from the car to the center line
                 auto derivation = sqrt(vec_c_dist[0] * vec_c_dist[0] + vec_c_dist[1] * vec_c_dist[1]); // distance between the car and the center line
                 if (derivation > 100)  // if the car derivates from the line 100mm
                 {
@@ -274,10 +276,10 @@ public:
     bool carPushingInitFlag; // for car pushing
     bool carPushingApproachCarFlag; // for car pushing
     bool carPushingApproachAlignFlag; // for car pushing
-    int push_target_x;       // for car pushing
-    int push_target_y;       // for car pushing
-    int approach_target_x;   // for car pushing
-    int approach_target_y;   // for car pushing
+    float push_target_x;       // for car pushing
+    float push_target_y;       // for car pushing
+    float approach_target_x;   // for car pushing
+    float approach_target_y;   // for car pushing
     float approach_target_theta; // for car pushing
 
     // Sensors
@@ -287,9 +289,9 @@ public:
     float vive_x;           // vive x coordinate, mm
     float vive_y;           // vive y coordinate, mm
     float vive_theta;       // vive heading, degree
-    int police_x;         // police car x coordinate, mm
-    int police_y;         // police car y coordinate, mm
-    int trophy_direction; // trophy direction, degree
+    float police_x;         // police car x coordinate, mm
+    float police_y;         // police car y coordinate, mm
+    float trophy_direction; // trophy direction, degree
 
     // HTML
     char html_state;            // html state, 'a' for auto, 'w' for wall, 'p' for push, 't' for trophy, 'm' for manual, 'n' for nothing
@@ -356,6 +358,7 @@ public:
         }
         else if (current_mode == PUSH)
         {
+            carPushingInitFlag = false;  // in case we manually terminated the car pushing mode last time
             carPushing();
         }
         else if (current_mode == TROPHY)
