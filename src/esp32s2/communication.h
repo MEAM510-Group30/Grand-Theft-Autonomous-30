@@ -83,117 +83,130 @@ public:
   }
 };
 
-class web_commun
-{ // in main function, initialize a web_commun variable to attach handlers
+class web_commun {  // in main function, initialize a web_commun variable to attach handlers
   // visit commun_Mode, Action, speed, turnRate in main function
+#define portMAX_DELAY 4294967295UL
 public:
-    static esp_now esp_now_message;
-    static commun_Mode mode;
-    static commun_Actions action;
-    static int speed;
-    static int turnRate;
-    static WiFiServer wifi_server;
-    static HTML510Server html_server;
+  static esp_now esp_now_message;
+  static commun_Mode mode;
+  static commun_Actions action;
+  static int speed;
+  static int turnRate;
+  static WiFiServer wifi_server;
+  static HTML510Server html_server;
+  const char *ssid = "group30";  //set my router ID
+  const char *pwd = "12345678";  //set router password
+  static SemaphoreHandle_t espNowSemaphore;
 
-    web_commun(IPAddress local_IP, const char *ssid = "Furina", const char *pwd = "Furinaaa")
-    {
-        // our own IP address is local_IP above
-        IPAddress gateway_IP(192, 168, 1, 1);
-        IPAddress subnet_IP(255, 255, 255, 0);
+  web_commun() {
+    espNowSemaphore = xSemaphoreCreateMutex();
+  }
 
-        WiFi.mode(WIFI_MODE_AP); // wifi in ap mode, no router
-        WiFi.softAPConfig(local_IP, gateway_IP, subnet_IP);
-        WiFi.softAP(ssid, pwd);
-        wifi_server.begin();
-        IPAddress softAP_IP = WiFi.softAPIP();
+  void initial(IPAddress local_IP, const char *ssid = "group30", const char *pwd = "12345678") {
+    // our own IP address is local_IP above
+    IPAddress gateway_IP(192, 168, 1, 1);
+    IPAddress subnet_IP(255, 255, 255, 0);
 
-        html_server.begin();
-        html_server.attachHandler("/", handleRoot);
-        html_server.attachHandler("/tro", handleTrophy);
-        html_server.attachHandler("/man", handleManual);
-        html_server.attachHandler("/wall", handleWall);
-        html_server.attachHandler("/car", handleCar);
-        html_server.attachHandler("/F", handleForward);
-        html_server.attachHandler("/B", handleBackward);
-        html_server.attachHandler("/L", handleLeft);
-        html_server.attachHandler("/R", handleRight);
-        html_server.attachHandler("/O", handleStop);
-        html_server.attachHandler("/speed_slider=", handleSpeed);
-        html_server.attachHandler("/turn_rate_slider=", handleTurnRate);
-    }
+    Serial.begin(115200);
+    WiFi.mode(WIFI_MODE_AP);  // wifi in ap mode, no router
+    Serial.print("Access point ");
+    Serial.println(ssid);
+    WiFi.softAP(ssid, pwd);
+    WiFi.softAPConfig(local_IP, gateway_IP, subnet_IP);
+    Serial.print("AP IP address ");
+    Serial.println(local_IP);
+    //wifi_server.begin();
+    //IPAddress softAP_IP = WiFi.softAPIP();
+    esp_now_message.initialize();
 
-    ~web_commun() {}
+    html_server.begin();
+    html_server.attachHandler("/", handleRoot);
+    html_server.attachHandler("/tro", handleTrophy);
+    html_server.attachHandler("/man", handleManual);
+    html_server.attachHandler("/wall", handleWall);
+    html_server.attachHandler("/car", handleCar);
+    html_server.attachHandler("/F", handleForward);
+    html_server.attachHandler("/B", handleBackward);
+    html_server.attachHandler("/L", handleLeft);
+    html_server.attachHandler("/R", handleRight);
+    html_server.attachHandler("/O", handleStop);
+    html_server.attachHandler("/speed_slider=", handleSpeed);
+    html_server.attachHandler("/turn_rate_slider=", handleTurnRate);
 
-    static void handleRoot()
-    {
-        html_server.sendhtml(body);
-    }
+    espNowSemaphore = xSemaphoreCreateMutex();
+  }
 
-    static void handleTrophy()
-    {
-        esp_now_message.sendMessage();
-        mode = commun_TROPHY;
-    }
+  ~web_commun() {}
 
-    static void handleManual()
-    {
-        esp_now_message.sendMessage();
-        mode = commun_MANUAL;
-    }
+  static void handleRoot() {
+    html_server.sendhtml(body);
+  }
 
-    static void handleWall()
-    {
-        esp_now_message.sendMessage();
-        mode = commun_WALL;
-    }
+  static void handleTrophy() {
+    //esp_now_message.sendMessage();
+    mode = commun_TROPHY;
+    Serial.print("Trophy");
+  }
 
-    static void handleCar()
-    {
-        esp_now_message.sendMessage();
-        mode = commun_PUSH;
-    }
+  static void handleManual() {
+    //esp_now_message.sendMessage();
+    mode = commun_MANUAL;
+    Serial.print("Manual");
+  }
 
-    static void handleForward()
-    {
-        esp_now_message.sendMessage();
-        action = commun_FORWARD;
-    }
+  static void handleWall() {
+    //esp_now_message.sendMessage();
+    mode = commun_WALL;
+    Serial.print("Wall");
+  }
 
-    static void handleSpeed()
-    {
-        esp_now_message.sendMessage();
-        speed = html_server.getVal();
-    }
+  static void handleCar() {
+    //esp_now_message.sendMessage();
+    mode = commun_PUSH;
+    Serial.print("Car");
+  }
 
-    static void handleBackward()
-    {
-        esp_now_message.sendMessage();
-        action = commun_BACKWARD;
-    }
+  static void handleForward() {
+    //esp_now_message.sendMessage();
+    action = commun_FORWARD;
+    Serial.print("Forward");
+  }
 
-    static void handleLeft()
-    {
-        esp_now_message.sendMessage();
-        action = commun_LEFT;
-    }
+  static void handleSpeed() {
+    //esp_now_message.sendMessage();
+    speed = html_server.getVal();
+    Serial.printf("set speed %d",speed);
+  }
 
-    static void handleRight()
-    {
-        esp_now_message.sendMessage();
-        action = commun_RIGHT;
-    }
+  static void handleBackward() {
+    //esp_now_message.sendMessage();
+    action = commun_BACKWARD;
+    Serial.print("Backward");
+  }
 
-    static void handleStop()
-    {
-        esp_now_message.sendMessage();
-        action = commun_STOP;
-    }
+  static void handleLeft() {
+    //esp_now_message.sendMessage();
+    action = commun_LEFT;
+    Serial.print("Left");
+  }
 
-    static void handleTurnRate()
-    {
-        esp_now_message.sendMessage();
-        turnRate = html_server.getVal();
-    }
+  static void handleRight() {
+    //esp_now_message.sendMessage();
+    action = commun_RIGHT;
+    Serial.print("Right");
+  }
+
+  static void handleStop() {
+    //esp_now_message.sendMessage();
+    action = commun_STOP;
+    Serial.print("Stop");
+  }
+
+  static void handleTurnRate() {
+    //esp_now_message.sendMessage();
+    turnRate = html_server.getVal();
+    Serial.printf("set TurnRate %d", turnRate);
+  }
 };
 
 WiFiServer web_commun::wifi_server(80);
