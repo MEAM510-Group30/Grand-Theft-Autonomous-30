@@ -145,6 +145,18 @@ public:
         // TODO: calculate vive orientation
         // Here we assume that the two vive sensors are symmetricly located on the left and right side of the robot
         // So when we select x+ axis as 0 degree, the heading of the robot is
+        auto dx = vive2_x_mm - vive1_x_mm;
+        auto dy = vive2_y_mm - vive1_y_mm;
+        vive_theta = atan2(dy, dx) * 180 / PI + 90;  // +90 or -90 depends on the vive sensor location
+        // Convert to -180 ~ 180
+        if (vive_theta > 180)
+        {
+            vive_theta -= 360;
+        }
+        else if (vive_theta < -180)
+        {
+            vive_theta += 360;
+        }
 
     }
 

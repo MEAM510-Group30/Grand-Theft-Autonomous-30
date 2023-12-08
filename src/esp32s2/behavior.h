@@ -114,21 +114,25 @@ private:
         if (tof_front <= dist_to_turn_thres && !needTurnFlag) // if front distance is too small, turn right
         {
             needTurnFlag = true;
+            Serial.println("Wall.Need Turn");
         }
         if (compareOrientation(previous_wall_theta + 90, vive_theta) && needTurnFlag) // if finish turning, set needTurnFlag to false, and reset PID
         {
             needTurnFlag = false;
             previous_wall_theta = vive_theta;
             action.PID_wall.resetPID();
+            Serial.println("Wall.Finish Turn");
         }
         if (needTurnFlag) // if need to turn, turn right at the same place
         {
             action.turnRightSamePlace();
+            Serial.println("Wall.Right");
         }
         if (!needTurnFlag) // if don't need to turn, follow the wall, and keep updating previous_wall_theta
         {
 
             action.followWallForward();
+            Serial.println("Wall.Forward");
             previous_wall_theta = vive_theta;
         }
 
@@ -145,13 +149,19 @@ private:
             push_target_x = police_x + 400; // target x coordinate, mm
             push_target_y = police_y;       // target y coordinate, mm
             action.releaseTrophy();
+            Serial.println("Push.Init");
         }
 
         if (comparePosition(push_target_x, push_target_y, police_x, police_y)) // if at the target position, stop pushing and do nothing
         {
             action.stop();
+            // reset flags
             carPushingInitFlag = false;
+            carPushingApproachCarFlag = false;
+            carPushingApproachAlignFlag = false;
+            
             current_mode = NOTHING;
+            Serial.println("Push.Finished");
         }
         else // if not at the target position, push the car
         {
@@ -168,8 +178,51 @@ private:
                 // generate target position
                 approach_target_x = police_x - 200;
                 approach_target_y = police_y;
-                approach_target_theta = 0;
+                
                 action.moveToPosition(approach_target_x, approach_target_y);
+                Serial.println("Push.Approaching Car");
+                if (comparePosition(approach_target_x, approach_target_y, police_x, police_y))
+                {
+                    carPushingApproachCarFlag = true;
+                    Serial.println("Push.Approached Car");
+                }
+            }
+            // After approaching the car, align with the car and the target position
+            else if (!carPushingApproachAlignFlag)
+            {
+                // generate orientation
+                approach_target_theta = atan2(push_target_y - police_y, push_target_x - police_x) * 180 / PI;
+                
+                action.turnToHeading(approach_target_theta);
+                Serial.println("Push.Aligning");
+                if (compareOrientation(approach_target_theta, vive_theta))
+                {
+                    carPushingApproachAlignFlag = true;
+                    Serial.println("Push.Aligned");
+                }
+                
+            }
+            else // if aligned, push the car
+            {
+                action.moveForward(); // use html_speed
+                // action.moveForward(4000); // use 4000 as speed
+                Serial.println("Push.Pushing");
+
+                // calculate the distance between the car and the center line
+                // if the car derivates from the line, repeat the approaching and aligning process
+                auto vec_cd[2] = {police_x - push_target_x, police_y - push_target_y}; // vector from the car to the target position
+                auto vec_rd[2] = {vive_x - push_target_x, vive_y - push_target_y}; // vector from the robot to the target position
+                auto rd_dot_cd = vec_cd[0] * vec_rd[0] + vec_cd[1] * vec_rd[1]; // dot product of the two vectors
+                auto scalar = rd_dot_cd / (vec_rd[0] * vec_rd[0] + vec_rd[1] * vec_rd[1]); // scalar of the projection of vec_cd to vec_rd
+                auto vec_cd_prj_to_rd[2] = {scalar * vec_rd[0], scalar * vec_rd[1]}; // projection of vec_cd to vec_rd
+                auto vec_c_dist[2] = {vec_cd[0] - vec_cd_prj_to_rd[0], vec_cd[1] - vec_cd_prj_to_rd[1]}; // vector from the car to the center line
+                auto derivation = sqrt(vec_c_dist[0] * vec_c_dist[0] + vec_c_dist[1] * vec_c_dist[1]); // distance between the car and the center line
+                if (derivation > 100)  // if the car derivates from the line 100mm
+                {
+                    carPushingApproachCarFlag = false;
+                    carPushingApproachAlignFlag = false;
+                    Serial.println("Push.Realigning");
+                }
             }
         }
     }
@@ -222,6 +275,7 @@ public:
     bool needTurnFlag;       // for wall following
     bool carPushingInitFlag; // for car pushing
     bool carPushingApproachCarFlag; // for car pushing
+    bool carPushingApproachAlignFlag; // for car pushing
     int push_target_x;       // for car pushing
     int push_target_y;       // for car pushing
     int approach_target_x;   // for car pushing
