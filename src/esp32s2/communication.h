@@ -99,153 +99,168 @@ public:
     }
 };
 
-class web_commun
-{   // in main function, initialize a web_commun variable to attach handlers
-    // visit commun_Mode, Action, speed, turnRate in main function
-
+class Serial_commun {  // use this class in main to communicate between two boards. to initialize, give tx and rx
 public:
-    static esp_now esp_now_message;
-    static commun_Mode mode;
-    static commun_Actions action;
-    static int speed;
-    static int turnRate;
-    static WiFiServer wifi_server;
-    static HTML510Server html_server;
-    const char *ssid = "group30"; // set my router ID
-    const char *pwd = "12345678"; // set router password
-    // static SemaphoreHandle_t espNowSemaphore;
+  String message;
+  SoftwareSerial softSerial;
 
-    web_commun()
-    {
-        // espNowSemaphore = xSemaphoreCreateMutex();
+  Serial_commun(int RX_PIN, int TX_PIN)
+    : softSerial(RX_PIN, TX_PIN) {
+    Serial.begin(115200);
+    softSerial.begin(9600);
+  }
+
+  ~Serial_commun() {}
+
+  void read() {
+    if (softSerial.available()) {
+      message = softSerial.readString();
+      Serial.println("Received message on ESP32 2: " + message);
     }
+  }
 
-    void initial(IPAddress local_IP, const char *ssid = "group30", const char *pwd = "12345678")
-    {
-        // our own IP address is local_IP above
-        IPAddress gateway_IP(192, 168, 1, 1);
-        IPAddress subnet_IP(255, 255, 255, 0);
-
-        Serial.begin(115200);
-        WiFi.mode(WIFI_MODE_AP); // wifi in ap mode, no router
-        Serial.print("Access point ");
-        Serial.println(ssid);
-        WiFi.softAP(ssid, pwd);
-        WiFi.softAPConfig(local_IP, gateway_IP, subnet_IP);
-        Serial.print("AP IP address ");
-        Serial.println(local_IP);
-        // wifi_server.begin();
-        // IPAddress softAP_IP = WiFi.softAPIP();
-        esp_now_message.initialize();
-
-        html_server.begin();
-        html_server.attachHandler("/", handleRoot);
-        html_server.attachHandler("/tro", handleTrophy);
-        html_server.attachHandler("/man", handleManual);
-        html_server.attachHandler("/wall", handleWall);
-        html_server.attachHandler("/car", handleCar);
-        html_server.attachHandler("/F", handleForward);
-        html_server.attachHandler("/B", handleBackward);
-        html_server.attachHandler("/L", handleLeft);
-        html_server.attachHandler("/R", handleRight);
-        html_server.attachHandler("/O", handleStop);
-        html_server.attachHandler("/speed_slider=", handleSpeed);
-        html_server.attachHandler("/turn_rate_slider=", handleTurnRate);
-
-        // espNowSemaphore = xSemaphoreCreateMutex();
-    }
-
-    ~web_commun() {}
-
-    static void handleRoot()
-    {
-        html_server.sendhtml(body);
-    }
-
-    static void handleTrophy()
-    {
-        // esp_now_message.sendMessage();
-        mode = commun_TROPHY;
-        Serial.print("Trophy");
-    }
-
-    static void handleManual()
-    {
-        // esp_now_message.sendMessage();
-        mode = commun_MANUAL;
-        Serial.print("Manual");
-    }
-
-    static void handleWall()
-    {
-        // esp_now_message.sendMessage();
-        mode = commun_WALL;
-        Serial.print("Wall");
-    }
-
-    static void handleCar()
-    {
-        // esp_now_message.sendMessage();
-        mode = commun_PUSH;
-        Serial.print("Car");
-    }
-
-    static void handleForward()
-    {
-        // esp_now_message.sendMessage();
-        action = commun_FORWARD;
-        Serial.print("Forward");
-    }
-
-    static void handleSpeed()
-    {
-        // esp_now_message.sendMessage();
-        speed = html_server.getVal();
-        Serial.printf("set speed %d", speed);
-    }
-
-    static void handleBackward()
-    {
-        // esp_now_message.sendMessage();
-        action = commun_BACKWARD;
-        Serial.print("Backward");
-    }
-
-    static void handleLeft()
-    {
-        // esp_now_message.sendMessage();
-        action = commun_LEFT;
-        Serial.print("Left");
-    }
-
-    static void handleRight()
-    {
-        // esp_now_message.sendMessage();
-        action = commun_RIGHT;
-        Serial.print("Right");
-    }
-
-    static void handleStop()
-    {
-        // esp_now_message.sendMessage();
-        action = commun_STOP;
-        Serial.print("Stop");
-    }
-
-    static void handleTurnRate()
-    {
-        // esp_now_message.sendMessage();
-        turnRate = html_server.getVal();
-        Serial.printf("set TurnRate %d", turnRate);
-    }
+  void write(String wr_message) {
+    Serial.println("Sending message: " + wr_message);
+    softSerial.println(wr_message);
+  }
 };
 
-WiFiServer web_commun::wifi_server(80);
+class web_commun {  // in main function, initialize a web_commun variable to attach handlers
+                    // visit commun_Mode, Action, speed, turnRate in main function
+  //#define portMAX_DELAY 4294967295UL
+public:
+  static Serial_commun message;
+  static commun_Mode mode;
+  static commun_Actions action;
+  static int speed;
+  static int turnRate;
+  static HTML510Server html_server;
+  static WiFiServer server;
+  const char *ssid = "group30";  // set router ID
+  const char *pwd = "12345678";  // set router password
+
+  web_commun() {
+  }
+
+  void initial(IPAddress local_IP, const char *ssid = "group30", const char *pwd = "12345678") {
+    // our own IP address is local_IP above
+    IPAddress gateway_IP(192, 168, 1, 1);
+    IPAddress subnet_IP(255, 255, 255, 0);
+
+    Serial.begin(115200);
+    WiFi.mode(WIFI_MODE_AP); // wifi in ap mode, no router
+    Serial.print("Access point ");
+    Serial.println(ssid);
+    WiFi.softAP(ssid, pwd);
+    WiFi.softAPConfig(local_IP, gateway_IP, subnet_IP);
+    Serial.print("AP IP address ");
+    Serial.println(local_IP);
+    // WiFi.mode(WIFI_MODE_STA);
+    // WiFi.config(local_IP, gateway_IP, subnet_IP);
+    // WiFi.begin(ssid, pwd);
+    // while (WiFi.status() != WL_CONNECTED) {
+    //   delay(500);
+    //   Serial.print(".");
+    // }
+    // Serial.println("WiFi connected");
+    // server.begin();
+
+    html_server.begin();
+    html_server.attachHandler("/", handleRoot);
+    html_server.attachHandler("/tro", handleTrophy);
+    html_server.attachHandler("/man", handleManual);
+    html_server.attachHandler("/wall", handleWall);
+    html_server.attachHandler("/car", handleCar);
+    html_server.attachHandler("/F", handleForward);
+    html_server.attachHandler("/B", handleBackward);
+    html_server.attachHandler("/L", handleLeft);
+    html_server.attachHandler("/R", handleRight);
+    html_server.attachHandler("/O", handleStop);
+    html_server.attachHandler("/speed_slider=", handleSpeed);
+    html_server.attachHandler("/turn_rate_slider=", handleTurnRate);
+
+  }
+
+  ~web_commun() {}
+
+  static void handleRoot() {
+    html_server.sendhtml(body);
+  }
+
+  static void handleTrophy() {
+    mode = commun_TROPHY;
+    Serial.println("Trophy");
+    message.write("broadcast");
+  }
+
+  static void handleManual() {
+    mode = commun_MANUAL;
+    Serial.println("Manual");
+    message.write("broadcast");
+  }
+
+  static void handleWall() {
+    mode = commun_WALL;
+    Serial.println("Wall");
+    message.write("broadcast");
+  }
+
+  static void handleCar() {
+    mode = commun_PUSH;
+    Serial.println("Car");
+    message.write("broadcast");
+  }
+
+  static void handleForward() {
+    action = commun_FORWARD;
+    Serial.println("Forward");
+    message.write("broadcast");
+  }
+
+  static void handleSpeed() {
+    speed = html_server.getVal();
+    Serial.printf("set speed %d", speed);
+    message.write("broadcast");
+  }
+
+  static void handleBackward() {
+    action = commun_BACKWARD;
+    Serial.println("Backward");
+    message.write("broadcast");
+  }
+
+  static void handleLeft() {
+    action = commun_LEFT;
+    Serial.println("Left");
+    message.write("broadcast");
+  }
+
+  static void handleRight() {
+    action = commun_RIGHT;
+    Serial.println("Right");
+    message.write("broadcast");
+  }
+
+  static void handleStop() {
+    action = commun_STOP;
+    Serial.println("Stop");
+    message.write("broadcast");
+  }
+
+  static void handleTurnRate() {
+    turnRate = html_server.getVal();
+    Serial.printf("set TurnRate %d", turnRate);
+    message.write("broadcast");
+  }
+};
+
 HTML510Server web_commun::html_server(80);
 commun_Mode web_commun::mode = commun_NOTHING;
 commun_Actions web_commun::action = commun_STOP;
 int web_commun::speed = 0;
 int web_commun::turnRate = 50;
+WiFiServer web_commun::server(80);
+Serial_commun web_commun::message(4,5);
 
 class UDP_broadcast
 { // use mamber function sendXY to broadcast
@@ -313,37 +328,6 @@ public:
             return;
         }
         Serial.println("no data received");
-    }
-};
-
-class Serial_commun
-{ // use this class in main to communicate between two boards. to initialize, give tx and rx
-public:
-    String message;
-    SoftwareSerial softSerial;
-
-    Serial_commun(int RX_PIN, int TX_PIN)
-        : softSerial(RX_PIN, TX_PIN)
-    {
-        Serial.begin(115200);
-        softSerial.begin(9600);
-    }
-
-    ~Serial_commun() {}
-
-    void read()
-    {
-        if (softSerial.available())
-        {
-            message = softSerial.readString();
-            Serial.println("Received message on ESP32 2: " + message);
-        }
-    }
-
-    void write(String wr_message)
-    {
-        Serial.println("Sending message: " + wr_message);
-        softSerial.println(wr_message);
     }
 };
 
