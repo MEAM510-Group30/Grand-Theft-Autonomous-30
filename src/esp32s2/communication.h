@@ -254,8 +254,8 @@ public:
     int signalPin2 = 18;
 
     WiFiUDP UDPServer;
-    const char *ssid = "TP-Link_E0C8";
-    const char *password = "52665134";
+    const char *ssid = "group30";
+    const char *password = "12345678";
     IPAddress target; // broadcast mode is 255
     IPAddress myIP;   // change our IP
     IPAddress gateway_IP = IPAddress(192, 168, 4, 1);
