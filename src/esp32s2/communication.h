@@ -113,11 +113,11 @@ public:
     static HTML510Server html_server;
     const char *ssid = "group30"; // set my router ID
     const char *pwd = "12345678"; // set router password
-    static SemaphoreHandle_t espNowSemaphore;
+    // static SemaphoreHandle_t espNowSemaphore;
 
     web_commun()
     {
-        espNowSemaphore = xSemaphoreCreateMutex();
+        // espNowSemaphore = xSemaphoreCreateMutex();
     }
 
     void initial(IPAddress local_IP, const char *ssid = "group30", const char *pwd = "12345678")
@@ -152,7 +152,7 @@ public:
         html_server.attachHandler("/speed_slider=", handleSpeed);
         html_server.attachHandler("/turn_rate_slider=", handleTurnRate);
 
-        espNowSemaphore = xSemaphoreCreateMutex();
+        // espNowSemaphore = xSemaphoreCreateMutex();
     }
 
     ~web_commun() {}

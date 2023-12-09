@@ -22,7 +22,7 @@
 
 #include "control.h"
 
-// #include "communication.h"
+#include "communication.h"
 
 #include "s2_sensors.h"
 
@@ -36,7 +36,7 @@
 // and basic actions of specifying motor speeds and servo angles
 // This gloabl variable is only for debugging purposes
 // In the final version, the actions object should be created in the behavior class
-Actions actions = Actions();
+// Actions actions = Actions();
 
 // sensors is a global variable containing:
 // pin definitions, encoder and vive objects, and sensor readings
@@ -46,11 +46,18 @@ Sensors sensors = Sensors();
 // the behavior tree and the action object
 Behavior behavior = Behavior();
 
-// communication
-// Communication communication = Communication();
+// communication classes
+web_commun html = web_commun();
+UDP_broadcast udp = UDP_broadcast(IPAddress(192, 168, 1, 142));
+Serial_commun c3(19, 20);
+esp_now esp = esp_now();
+
+
+
 
 void setup() {
     Serial.begin(115200);
+    c3.softSerial.begin(9600);
 }
 
 void loop() {
@@ -113,7 +120,7 @@ void loop() {
 
     // // actions.moveBackward(-2000);
 
-     delay(50);
+    delay(50);
 
     // // ### Main Code ###
 
