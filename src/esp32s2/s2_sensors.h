@@ -244,9 +244,9 @@ public:
     float calculateXCoordInMillimeters(int vive_coord_x, int vive_coord_y)
     {
         // Compute the actual position in millimeters
-        int x_min = 1500;
-        int delta_x = 4400;
-        int L_x = 3556; // mm
+        int x_min = 1900;
+        int delta_x = 3800;
+        int L_x = 2900; // mm
 
         float x_mm = (float) ((vive_coord_x - x_min) * L_x) / (float) delta_x;
         return x_mm;
@@ -279,7 +279,7 @@ public:
     {
         calculateVivePosition();
         // float threshold = 10.0; // mm, to be tuned
-        return (abs(vive_x_mm - desired_x) <= threshold) && (abs(vive_y_mm - desired_y) <= threshold);
+        return (abs(vive_x_mm - desired_x) < threshold) && (abs(vive_y_mm - desired_y) < threshold);
     }
 
 };
