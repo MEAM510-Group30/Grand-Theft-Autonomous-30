@@ -203,7 +203,7 @@ void loop()
     // c3 sensors reading through serial communication
     // c3 data: 2 x ToF data, 2 x IR sensor frequancy, 1 x police car broadcast
     c3.read();
-    String serial_msg = c3.msg;
+    String serial_msg = c3.message;
     int tof_front = 9999; // default no dectection values
     int tof_left = 9999;
     int ir_freq_1 = 999;

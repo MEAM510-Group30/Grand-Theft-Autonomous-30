@@ -269,13 +269,13 @@ private:
                 if (ir_left_freq == trophy_freq && ir_right_freq != trophy_freq)
                 {
                     // Need to turn left a little bit
-                    action.turnLeft(action.html_speed, action.html_turn_rate);
+                    action.turnLeft(action.html_speed, action.html_turnRate);
                     Serial.println("Trophy.Appr Left");
                 }
                 if (ir_left_freq != trophy_freq && ir_right_freq == trophy_freq)
                 {
                     // Need to turn right a little bit
-                    action.turnRight(action.html_speed, action.html_turn_rate);
+                    action.turnRight(action.html_speed, action.html_turnRate);
                     Serial.println("Trophy.Appr Right");
                 }
                 if (ir_left_freq == trophy_freq && ir_right_freq == trophy_freq)
@@ -509,7 +509,7 @@ public:
         }
         else if (current_mode == TROPHY)
         {
-            trophyMoving();
+            trophyMoving(3500, 3900);
         }
         else if (current_mode == MANUAL)
         {
