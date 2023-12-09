@@ -117,6 +117,7 @@ public:
 
     // For moveToPosition function
     bool turnToHeadingFinished;
+    int turnToHeadingCount;
 
     // Constructor with initialization list
     Actions() : MOTOR_L(MOTOR_L_PWM, MOTOR_L_DIR1, MOTOR_L_DIR2, LEDC_CHA_0, LEDC_RES_BITS, LEDC_FREQ),
@@ -128,14 +129,14 @@ public:
                 // PID_pos_x(kp = 0.1, ki = 0.0, kd = 0.0), PID_pos_y(kp = 0.1, ki = 0.0, kd = 0.0),
                 ACTUAL_SPEED_L(0), ACTUAL_SPEED_R(0),
                 moveActionMode(STOP), jawActionMode(JAW_HOLD),
-                html_speed(0), html_turnRate(50),
+                html_speed(3000), html_turnRate(50),
                 desSpeedL(0), desSpeedR(0), PIDSpeedL(0), PIDSpeedR(0),
                 servoAngleJaw(0), servoAngleIR(0),
                 IRServoMode(0),
                 tof_side(0), tof_front(0),
                 current_x(0), current_y(0), current_theta(0),
                 target_x(0), target_y(0), target_theta(0),
-                turnToHeadingFinished(false)
+                turnToHeadingFinished(false), turnToHeadingCount(0)
     {
         // ledcSetup(LEDC_CHA_0, LEDC_FREQ, LEDC_RES_BITS);
         // ledcSetup(LEDC_CHA_1, LEDC_FREQ, LEDC_RES_BITS);
@@ -474,9 +475,10 @@ public:
 
     void turnToHeading(float heading, float threshold=5.0)
     {
+        // NEED TO UPDATE CURRENT THETA BEFORE CALLING THIS FUNCTION
         // Turn to the specified heading
         // The heading is in degrees, and 0 degree is the x+ axis
-
+        
         float delta_theta = heading - current_theta;
         if (delta_theta > 180)
         {
@@ -489,11 +491,11 @@ public:
 
         if (delta_theta > threshold)
         {
-            turnLeftSamePlace();
+            turnLeftSamePlace(1500);
         }
         else if (delta_theta < -threshold)
         {
-            turnRightSamePlace();
+            turnRightSamePlace(1500);
         }
         else
         {
@@ -502,28 +504,42 @@ public:
 
     }
 
-    void moveToPosition(float x, float y, float threshold=10.0, float angle_threshold=5.0)
+    void moveToPosition(float target_x, float target_y, float threshold=50.0, float angle_threshold=100.0)
     {
-        // Write the target position to target_x and target_y
-        target_x = x;
-        target_y = y;        
+        // NEED TO UPDATE CURRENT XY AND THETA BEFORE CALLING THIS FUNCTION
+        
+        // Write the target position to target_x and target_y  
         target_theta = atan2(target_y - current_y, target_x - current_x) * 180 / PI;
 
-        if (abs(current_theta - target_theta) > angle_threshold) // Head towards the target position
+        if (abs(current_theta - target_theta) < angle_threshold)
+        {
+            turnToHeadingCount += 1;
+        }
+
+        if (turnToHeadingCount >= 20)
+        {
+            turnToHeadingFinished = true;
+        }
+
+        if (!turnToHeadingFinished) // Head towards the target position
         {
             turnToHeading(target_theta, angle_threshold);
+            Serial.println("turning");
         }
         else // Move forward
         {
             if (((current_x - target_x) * (current_x - target_x) + (current_y - target_y) * (current_y - target_y) > threshold * threshold))
             {
                 moveForward();
+                Serial.println("forward");
             }
             else
             {
                 stop();
+                Serial.println("stop");
             }
         }
+        // REMEMBER TO RESET FLAG AFTER USING THIS FUNCTION
     }
 
 };

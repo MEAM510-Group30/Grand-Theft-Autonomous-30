@@ -25,8 +25,8 @@ public:
     int ENCODER_L_B = 4;
 
     // Vive pin
-    int VIVE_PIN_1 = 8;
-    int VIVE_PIN_2 = 3;
+    int VIVE_PIN_1 = 3;
+    int VIVE_PIN_2 = 8;
 
     // Encoder objects
     ESP32Encoder encoder_L;
@@ -51,14 +51,28 @@ public:
     float count_speed_L;                 // counts per ms
     float count_speed_R;                 // counts per ms
 
-    // Vive values
+    // Original vive values
     int vive1_x;
-    float vive1_x_mm;
     int vive1_y;
-    float vive1_y_mm;
     int vive2_x;
-    float vive2_x_mm;
     int vive2_y;
+
+    // For filter
+    int vive1_x_array[5];
+    int vive1_y_array[5];
+    int vive2_x_array[5];
+    int vive2_y_array[5];
+
+    // Filtered vive values
+    int trusted_vive1_x;
+    int trusted_vive1_y;
+    int trusted_vive2_x;
+    int trusted_vive2_y;
+
+    // Calculated vive vlues
+    float vive1_x_mm;
+    float vive1_y_mm;
+    float vive2_x_mm;
     float vive2_y_mm;
 
     // position calculated from vive values
@@ -68,12 +82,22 @@ public:
     float vive_theta; // in degrees
 
     // Constructor
-    Sensors() : vive1(VIVE_PIN_1), vive2(VIVE_PIN_2),
+    Sensors(int init_vive_x=0, int init_vive_y=0) : vive1(VIVE_PIN_1), vive2(VIVE_PIN_2),
+
                 encoder_L_val(0), encoder_R_val(0),
                 encoder_L_val_previous(0), encoder_R_val_previous(0),
+
                 speed_L(0.0), speed_R(0.0),
                 count_speed_L(0.0), count_speed_R(0.0),
+
                 vive1_x(0), vive1_y(0), vive2_x(0), vive2_y(0),
+
+                vive1_x_array{init_vive_x}, vive1_y_array{init_vive_y}, vive2_x_array{init_vive_x}, vive2_y_array{init_vive_y},
+
+                trusted_vive1_x(0), trusted_vive1_y(0), trusted_vive2_x(0), trusted_vive2_y(0),
+
+                vive1_x_mm(0.0), vive1_y_mm(0.0), vive2_x_mm(0.0), vive2_y_mm(0.0),
+
                 vive_x_mm(0.0), vive_y_mm(0.0), vive_theta(0.0)
     {
         ESP32Encoder::useInternalWeakPullResistors = UP;
@@ -131,13 +155,61 @@ public:
             vive2.sync(15);
         }
         
-        vive1_x_mm = calculateXCoordInMillimeters(vive1_x, vive1_y);
-        vive1_y_mm = calculateYCoordInMillimeters(vive1_x, vive1_y);
-        vive2_x_mm = calculateXCoordInMillimeters(vive2_x, vive2_y);
-        vive2_y_mm = calculateYCoordInMillimeters(vive2_x, vive2_y);
-        
+        filter(); // filter the vive values
+        vive1_x_mm = calculateXCoordInMillimeters(trusted_vive1_x, trusted_vive1_y);
+        vive1_y_mm = calculateYCoordInMillimeters(trusted_vive1_x, trusted_vive1_y);
+        vive2_x_mm = calculateXCoordInMillimeters(trusted_vive2_x, trusted_vive2_y);
+        vive2_y_mm = calculateYCoordInMillimeters(trusted_vive2_x, trusted_vive2_y);       
+
         calculateVivePosition();  // update vive_x_mm and vive_y_mm
         calculateViveOrientation();  // update vive_theta
+    }
+
+    void filter()
+    {
+        int previous_average_vive1_x = 0;
+        int previous_average_vive1_y = 0;
+        int previous_average_vive2_x = 0;
+        int previous_average_vive2_y = 0;
+        for (int i = 0; i < 5; i++)
+        {
+            previous_average_vive1_x += vive1_x_array[i];
+            previous_average_vive1_y += vive1_y_array[i];
+            previous_average_vive2_x += vive2_x_array[i];
+            previous_average_vive2_y += vive2_y_array[i];
+        }
+        previous_average_vive1_x /= 5;
+        previous_average_vive1_y /= 5;
+        previous_average_vive2_x /= 5;
+        previous_average_vive2_y /= 5;
+
+        for (int i = 0; i < 4; i++)
+        {
+            vive1_x_array[i] = vive1_x_array[i + 1];
+            vive1_y_array[i] = vive1_y_array[i + 1];
+            vive2_x_array[i] = vive2_x_array[i + 1];
+            vive2_y_array[i] = vive2_y_array[i + 1];
+        }
+        vive1_x_array[4] = vive1_x;
+        vive1_y_array[4] = vive1_y;
+        vive2_x_array[4] = vive2_x;
+        vive2_y_array[4] = vive2_y;
+
+        trusted_vive1_x = 0;
+        trusted_vive1_y = 0;
+        trusted_vive2_x = 0;
+        trusted_vive2_y = 0;
+        for (int i = 0; i < 5; i++)
+        {
+            trusted_vive1_x += vive1_x_array[i];
+            trusted_vive1_y += vive1_y_array[i];
+            trusted_vive2_x += vive2_x_array[i];
+            trusted_vive2_y += vive2_y_array[i];
+        }
+        trusted_vive1_x /= 5;
+        trusted_vive1_y /= 5;
+        trusted_vive2_x /= 5;
+        trusted_vive2_y /= 5;
     }
 
     void calculateViveOrientation()
@@ -145,9 +217,10 @@ public:
         // TODO: calculate vive orientation
         // Here we assume that the two vive sensors are symmetricly located on the left and right side of the robot
         // So when we select x+ axis as 0 degree, the heading of the robot is
-        auto dx = vive2_x_mm - vive1_x_mm;
-        auto dy = vive2_y_mm - vive1_y_mm;
-        vive_theta = atan2(dy, dx) * 180 / PI + 90;  // +90 or -90 depends on the vive sensor location
+        auto dx = vive1_x_mm - vive2_x_mm;
+        auto dy = vive1_y_mm - vive2_y_mm;
+        // Looks like that the actual x y is opposite to my expectation, so atan2(dx,dy) instead of atan2(dy,dx)
+        vive_theta = atan2(dy, dx) * 180 / PI - 90;  // +90 or -90 depends on the vive sensor location
         // Convert to -180 ~ 180
         if (vive_theta > 180)
         {
@@ -157,7 +230,6 @@ public:
         {
             vive_theta += 360;
         }
-
     }
 
     void calculateVivePosition()

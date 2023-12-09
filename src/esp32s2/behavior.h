@@ -93,7 +93,7 @@ private:
         return (abs(current_theta - desired_theta) < threshold);
     }
 
-    bool comparePosition(float desired_x, float desired_y, float current_x, float current_y, float threshold = 10.0) // alsolute position from vive, currently unable to deal with overshot
+    bool comparePosition(float desired_x, float desired_y, float current_x, float current_y, float threshold = 30.0) // alsolute position from vive, currently unable to deal with overshot
     {
         return ((current_x - desired_x) * (current_x - desired_x) + (current_y - desired_y) * (current_y - desired_y) <= threshold * threshold);
     }
@@ -130,7 +130,8 @@ private:
         if (!needTurnFlag) // if don't need to turn, follow the wall, and keep updating previous_wall_theta
         {
 
-            action.followWallForward();
+            // action.followWallForward();
+            action.moveForward();
             Serial.println("Wall.Forward");
             previous_wall_theta = vive_theta;
         }
@@ -179,8 +180,14 @@ private:
                 approach_target_x = police_x - 200;
                 approach_target_y = police_y;
                 
+                // Update current position and heading before using moveTo function
+                action.current_x = vive_x;
+                action.current_y = vive_y;
+                action.current_theta = vive_theta;
                 action.moveToPosition(approach_target_x, approach_target_y);
+
                 Serial.println("Push.Approaching Car");
+
                 if (comparePosition(approach_target_x, approach_target_y, police_x, police_y, 50.0))
                 {
                     carPushingApproachCarFlag = true;
@@ -339,6 +346,10 @@ private:
         if (trophyLockedFlag && approachTrophyFlag && trophyGrabbedFlag && !approach_only)
         {
             Serial.println("Trophy.Moving Trophy");
+
+            action.current_x = vive_x;
+            action.current_y = vive_y;
+            action.current_theta = vive_theta;
             action.moveToPosition(trophy_target_x, trophy_target_y);
 
             if (tof_front > 20) // if the trophy is not in the gripper
@@ -425,8 +436,8 @@ public:
 
     // Sensors
     // Note that all coordinate and distance values here should be in mm
-    uint8_t tof_front;    // front TOF value, mm
-    uint8_t tof_left;     // left TOF value, mm
+    int tof_front;    // front TOF value, mm
+    int tof_left;     // left TOF value, mm
     int ir_left_freq;     // left IR sensor frequency, Hz, can only be 23, 550, or 999
     int ir_right_freq;    // right IR sensor frequency, Hz, can only be 23, 550, or 999
     float vive_x;           // vive x coordinate, mm
@@ -459,7 +470,7 @@ public:
         police_x(0), police_y(0), trophy_direction(0),
 
         html_state('n'), html_manual_direction('o'), html_jaw_open(false),
-        html_speed(0), html_turn_rate(0)
+        html_speed(3000), html_turn_rate(50)
     {
     }
     Behavior(const Behavior &old) {}
@@ -475,7 +486,7 @@ public:
         html_turn_rate = turn_rate;
     }
 
-    void updateBehaviorClassSensors(uint8_t front, uint8_t left, int x, int y, int theta, int police_x, int police_y, int trophy_direction)
+    void updateBehaviorClassSensors(int front, int left, int x, int y, int theta, int police_x, int police_y, int trophy_direction)
     {
         // Call this function in the main loop to update all sensors data in this class
         tof_front = front;
@@ -519,6 +530,14 @@ public:
         {
             doNothing();
         }
+    }
+
+    void testMoveToFunctionInActionsClass()
+    {
+        action.current_x = vive_x;
+        action.current_y = vive_y;
+        action.current_theta = vive_theta;
+        action.moveToPosition(1450, 1000);
     }
 };
 
