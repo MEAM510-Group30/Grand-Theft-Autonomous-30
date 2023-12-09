@@ -29,7 +29,15 @@ enum commun_Actions
     commun_BACKWARD,
     commun_LEFT,
     commun_RIGHT,
-    commun_STOP
+    commun_STOP,
+    commun_OPEN,
+    commun_CLOSE
+};
+
+enum commun_Jaw
+{
+    OPEN,
+    CLOSE
 };
 
 class esp_now
@@ -100,25 +108,55 @@ public:
     }
 };
 
+class Serial_commun
+{ // use this class in main to communicate between two boards. to initialize, give tx and rx
+public:
+    String message;
+    SoftwareSerial softSerial;
+
+    Serial_commun(int RX_PIN, int TX_PIN)
+        : softSerial(RX_PIN, TX_PIN)
+    {
+        Serial.begin(115200);
+        softSerial.begin(9600);
+    }
+
+    ~Serial_commun() {}
+
+    void read()
+    {
+        if (softSerial.available())
+        {
+            message = softSerial.readString();
+            Serial.println("Received message on ESP32 2: " + message);
+        }
+    }
+
+    void write(String wr_message)
+    {
+        Serial.println("Sending message: " + wr_message);
+        softSerial.println(wr_message);
+    }
+};
+
 class web_commun
 {   // in main function, initialize a web_commun variable to attach handlers
     // visit commun_Mode, Action, speed, turnRate in main function
-
+    // #define portMAX_DELAY 4294967295UL
 public:
-    static esp_now esp_now_message;
+    static Serial_commun message;
     static commun_Mode mode;
     static commun_Actions action;
+    static commun_Jaw Jaw;
     static int speed;
     static int turnRate;
-    static WiFiServer wifi_server;
     static HTML510Server html_server;
-    const char *ssid = "group30"; // set my router ID
+    static WiFiServer server;
+    const char *ssid = "group30"; // set router ID
     const char *pwd = "12345678"; // set router password
-    // static SemaphoreHandle_t espNowSemaphore;
 
     web_commun()
     {
-        // espNowSemaphore = xSemaphoreCreateMutex();
     }
 
     void initial(IPAddress local_IP, const char *ssid = "group30", const char *pwd = "12345678")
@@ -135,9 +173,15 @@ public:
         WiFi.softAPConfig(local_IP, gateway_IP, subnet_IP);
         Serial.print("AP IP address ");
         Serial.println(local_IP);
-        // wifi_server.begin();
-        // IPAddress softAP_IP = WiFi.softAPIP();
-        esp_now_message.initialize();
+        // WiFi.mode(WIFI_MODE_STA);
+        // WiFi.config(local_IP, gateway_IP, subnet_IP);
+        // WiFi.begin(ssid, pwd);
+        // while (WiFi.status() != WL_CONNECTED) {
+        //   delay(500);
+        //   Serial.print(".");
+        // }
+        // Serial.println("WiFi connected");
+        // server.begin();
 
         html_server.begin();
         html_server.attachHandler("/", handleRoot);
@@ -152,8 +196,8 @@ public:
         html_server.attachHandler("/O", handleStop);
         html_server.attachHandler("/speed_slider=", handleSpeed);
         html_server.attachHandler("/turn_rate_slider=", handleTurnRate);
-
-        // espNowSemaphore = xSemaphoreCreateMutex();
+        html_server.attachHandler("/open", handleJawOpen);
+        html_server.attachHandler("/close", handleJawClose);
     }
 
     ~web_commun() {}
@@ -165,88 +209,104 @@ public:
 
     static void handleTrophy()
     {
-        // esp_now_message.sendMessage();
         mode = commun_TROPHY;
-        Serial.print("Trophy");
+        Serial.println("Trophy");
+        message.write("broadcast");
     }
 
     static void handleManual()
     {
-        // esp_now_message.sendMessage();
         mode = commun_MANUAL;
-        Serial.print("Manual");
+        Serial.println("Manual");
+        message.write("broadcast");
     }
 
     static void handleWall()
     {
-        // esp_now_message.sendMessage();
         mode = commun_WALL;
-        Serial.print("Wall");
+        Serial.println("Wall");
+        message.write("broadcast");
     }
 
     static void handleCar()
     {
-        // esp_now_message.sendMessage();
         mode = commun_PUSH;
-        Serial.print("Car");
+        Serial.println("Car");
+        message.write("broadcast");
     }
 
     static void handleForward()
     {
-        // esp_now_message.sendMessage();
         action = commun_FORWARD;
-        Serial.print("Forward");
+        Serial.println("Forward");
+        message.write("broadcast");
     }
 
     static void handleSpeed()
     {
-        // esp_now_message.sendMessage();
         speed = html_server.getVal();
         Serial.printf("set speed %d", speed);
+        message.write("broadcast");
     }
 
     static void handleBackward()
     {
-        // esp_now_message.sendMessage();
         action = commun_BACKWARD;
-        Serial.print("Backward");
+        Serial.println("Backward");
+        message.write("broadcast");
     }
 
     static void handleLeft()
     {
-        // esp_now_message.sendMessage();
         action = commun_LEFT;
-        Serial.print("Left");
+        Serial.println("Left");
+        message.write("broadcast");
     }
 
     static void handleRight()
     {
-        // esp_now_message.sendMessage();
         action = commun_RIGHT;
-        Serial.print("Right");
+        Serial.println("Right");
+        message.write("broadcast");
     }
 
     static void handleStop()
     {
-        // esp_now_message.sendMessage();
         action = commun_STOP;
-        Serial.print("Stop");
+        Serial.println("Stop");
+        message.write("broadcast");
     }
 
     static void handleTurnRate()
     {
-        // esp_now_message.sendMessage();
         turnRate = html_server.getVal();
         Serial.printf("set TurnRate %d", turnRate);
+        message.write("broadcast");
+    }
+
+    static void handleJawOpen()
+    {
+        Jaw = OPEN;
+        Serial.println("Jaw Open");
+        message.write("broadcast");
+    }
+
+    static void handleJawClose()
+    {
+        Jaw = CLOSE;
+        Serial.println("Jaw cLOSE");
+        message.write("broadcast");
     }
 };
 
-WiFiServer web_commun::wifi_server(80);
 HTML510Server web_commun::html_server(80);
 commun_Mode web_commun::mode = commun_NOTHING;
 commun_Actions web_commun::action = commun_STOP;
 int web_commun::speed = 0;
 int web_commun::turnRate = 50;
+WiFiServer web_commun::server(80);
+Serial_commun web_commun::message(4, 5);
+commun_Jaw web_commun::Jaw = OPEN;
 
 class UDP_broadcast
 { // use mamber function sendXY to broadcast
@@ -255,8 +315,8 @@ public:
     int signalPin2 = 18;
 
     WiFiUDP UDPServer;
-    const char *ssid = "TP-Link_FD24";
-    const char *password = "65512111";
+    const char *ssid = "group30";
+    const char *password = "12345678";
     IPAddress target; // broadcast mode is 255
     IPAddress myIP;   // change our IP
     IPAddress gateway_IP = IPAddress(192, 168, 4, 1);
@@ -314,37 +374,6 @@ public:
             return;
         }
         Serial.println("no data received");
-    }
-};
-
-class Serial_commun
-{ // use this class in main to communicate between two boards. to initialize, give tx and rx
-public:
-    String message;
-    SoftwareSerial softSerial;
-
-    Serial_commun(int RX_PIN, int TX_PIN)
-        : softSerial(RX_PIN, TX_PIN)
-    {
-        Serial.begin(115200);
-        softSerial.begin(9600);
-    }
-
-    ~Serial_commun() {}
-
-    void read()
-    {
-        if (softSerial.available())
-        {
-            message = softSerial.readString();
-            Serial.println("Received message on ESP32 2: " + message);
-        }
-    }
-
-    void write(String wr_message)
-    {
-        Serial.println("Sending message: " + wr_message);
-        softSerial.println(wr_message);
     }
 };
 
