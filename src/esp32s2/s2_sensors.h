@@ -183,13 +183,13 @@ public:
     float calculateYCoordInMillimeters(int vive_coord_x, int vive_coord_y)
     {
         // Compute the actual position in millimeters
-        int x_min = 1500;
-        int y_min_1 = 2700;
-        int y_min_2 = 2900;
-        int delta_x = 4400;
-        int delta_y = 2200;
-        int L_x = 3556; // mm
-        int L_y = 1778; // mm
+        int x_min = 1900;
+        int y_min_1 = 2900;
+        int y_min_2 = 2800;
+        int delta_x = 3800;
+        int delta_y = 2000;
+        int L_x = 2900; // mm
+        int L_y = 1900; // mm
 
         int y_min_ = (vive_coord_x - x_min) * (y_min_2 - y_min_1) / delta_x + y_min_1;
         float y_mm = (float) ((vive_coord_y - y_min_) * L_y) / (float) delta_y;
