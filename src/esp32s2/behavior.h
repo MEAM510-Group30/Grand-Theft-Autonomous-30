@@ -160,7 +160,7 @@ private:
             carPushingInitFlag = false;
             carPushingApproachCarFlag = false;
             carPushingApproachAlignFlag = false;
-
+            // reset mode
             current_mode = NOTHING;
             Serial.println("Push.Finished");
         }
@@ -227,15 +227,143 @@ private:
         }
     }
 
-    void trophyMoving(int trophy_freq = 550)
+    void trophyMoving(float trophy_target_x, float trophy_target_y, int trophy_freq = 550, bool approach_only = true)
     {
         // Logic for trophy-moving mode 
 
-        // Step I: find and move to trophy
+        // Step I: find trophy of desired freq
+        if (!trophyLockedFlag)
+        {
+            action.turnLeftSamePlace(3000);
+            Serial.println("Trophy.Finding");
+            if (ir_left_freq == trophy_freq && ir_right_freq != trophy_freq)
+            {
+                action.turnLeftSamePlace(1500);
+                Serial.println("Trophy.Found on Left");
+            }
+            if (ir_left_freq != trophy_freq && ir_right_freq == trophy_freq)
+            {
+                action.turnRightSamePlace(1500);
+                Serial.println("Trophy.Found on Right");
+            }
+            if (ir_left_freq == trophy_freq && ir_right_freq == trophy_freq)
+            {
+                action.stop();
+                Serial.println("Trophy.Found and Locked");
+                trophyLockedFlag = true;
+            }
+        }
 
-        // Step II:
+        // Step II: move to the trophy
+        else if (!approachTrophyFlag)
+        {
+            if (tof_front > tof_threshold)
+            {
+                action.moveForward();
+                Serial.println("Trophy.Approaching");
+                if (ir_left_freq != trophy_freq && ir_right_freq != trophy_freq)
+                {
+                    trophyLockedFlag = false;  // if lost the trophy, go back to step I
+                    Serial.println("Trophy.Lost");
+                }
+                if (ir_left_freq == trophy_freq && ir_right_freq != trophy_freq)
+                {
+                    // Need to turn left a little bit
+                    action.turnLeft(action.html_speed, action.html_turn_rate);
+                    Serial.println("Trophy.Appr Left");
+                }
+                if (ir_left_freq != trophy_freq && ir_right_freq == trophy_freq)
+                {
+                    // Need to turn right a little bit
+                    action.turnRight(action.html_speed, action.html_turn_rate);
+                    Serial.println("Trophy.Appr Right");
+                }
+                if (ir_left_freq == trophy_freq && ir_right_freq == trophy_freq)
+                {
+                    action.moveForward(); // use html_speed
+                    Serial.println("Trophy.Appr Forward");
+                }
+            }
+            else
+            {
+                action.stop();
+                Serial.println("Trophy.Approached");
+                approachTrophyFlag = true;
+            }
+        }
 
-        // Step III:
+
+        // For ckeckoff, we only need to approach the trophy, so we can terminate here and reset
+        if (trophyLockedFlag && approachTrophyFlag && approach_only)
+        {
+            // Same as the reset procedure for approach and moving, which is at the end of this function
+            action.releaseTrophy();
+            Serial.println("Trophy.Finished with Checkoff");
+
+            // reset flags and threshold
+            approachTrophyFlag = false;
+            trophyGrabbedFlag = false;
+            trophyLockedFlag = false;
+            tof_threshold = 20;
+
+            // reset mode
+            current_mode = NOTHING;
+            return;
+        }
+
+        // Step III: grip and detect if success
+        if (trophyLockedFlag && approachTrophyFlag && !trophyGrabbedFlag && !approach_only)
+        {
+            action.grabTrophy();
+            if (tof_front > 20) // if the trophy is not in the gripper
+            {
+                action.releaseTrophy();
+                Serial.println("Trophy.Grab Failed");
+
+                approachTrophyFlag = false; // go back to step II
+
+                tof_threshold -= 5;  // decrease the threshold to get closer to the trophy
+                if (tof_threshold < 5)  // but not too close
+                {
+                    tof_threshold = 5;
+                }
+            }
+            else
+            {
+                trophyGrabbedFlag = true;
+                Serial.println("Trophy.Grab Success");
+            }
+        }
+
+        // Step IV: move to the target position
+        if (trophyLockedFlag && approachTrophyFlag && trophyGrabbedFlag && !approach_only)
+        {
+            Serial.println("Trophy.Moving Trophy");
+            action.moveToPosition(trophy_target_x, trophy_target_y);
+
+            if (tof_front > 20) // if the trophy is not in the gripper
+            {
+                action.releaseTrophy();
+                Serial.println("Trophy.Lost When Moving");
+
+                trophyGrabbedFlag = false; // go back to step III, will also automatically go back to step II because tof_front > 20
+            }
+
+            if (comparePosition(trophy_target_x, trophy_target_y, vive_x, vive_y)) // if at the target position
+            {
+                action.releaseTrophy();
+                Serial.println("Trophy.Finished");
+
+                // reset flags and threshold
+                approachTrophyFlag = false;
+                trophyGrabbedFlag = false;
+                trophyLockedFlag = false;
+                tof_threshold = 20;
+
+                // reset mode
+                current_mode = NOTHING;
+            }
+        }
     }
 
     void fullyManual()
@@ -280,6 +408,7 @@ public:
 
     // Task variables
     bool needTurnFlag;       // for wall following
+
     bool carPushingInitFlag; // for car pushing
     bool carPushingApproachCarFlag; // for car pushing
     bool carPushingApproachAlignFlag; // for car pushing
@@ -289,10 +418,17 @@ public:
     float approach_target_y;   // for car pushing
     float approach_target_theta; // for car pushing
 
+    bool trophyLockedFlag;    // for trophy moving
+    bool approachTrophyFlag;  // for trophy moving
+    int tof_threshold = 20; // mm, for trophy moving
+    bool trophyGrabbedFlag;   // for trophy moving
+
     // Sensors
     // Note that all coordinate and distance values here should be in mm
     uint8_t tof_front;    // front TOF value, mm
     uint8_t tof_left;     // left TOF value, mm
+    int ir_left_freq;     // left IR sensor frequency, Hz, can only be 23, 550, or 999
+    int ir_right_freq;    // right IR sensor frequency, Hz, can only be 23, 550, or 999
     float vive_x;           // vive x coordinate, mm
     float vive_y;           // vive y coordinate, mm
     float vive_theta;       // vive heading, degree
@@ -308,19 +444,22 @@ public:
     int html_turn_rate;         // html turn rate, 0-100
 
     // Constructor, copy constructor and destructor
-    Behavior() : current_mode(NOTHING),
-                 action(),
+    Behavior() : 
+        current_mode(NOTHING),
+        action(),
 
-                 needTurnFlag(false),
-                 carPushingInitFlag(false), carPushingApproachCarFlag(false),
-                 push_target_x(0), push_target_y(0),
+        needTurnFlag(false),
+        carPushingInitFlag(false), carPushingApproachCarFlag(false),
+        push_target_x(0), push_target_y(0),
+        approach_target_x(0), approach_target_y(0), approach_target_theta(0),
+        trophyLockedFlag(false), approachTrophyFlag(false),
 
-                 tof_front(0), tof_left(0),
-                 vive_x(0), vive_y(0), vive_theta(0),
-                 police_x(0), police_y(0), trophy_direction(0),
+        tof_front(0), tof_left(0),
+        vive_x(0), vive_y(0), vive_theta(0),
+        police_x(0), police_y(0), trophy_direction(0),
 
-                 html_state('n'), html_manual_direction('o'), html_jaw_open(false),
-                 html_speed(0), html_turn_rate(0)
+        html_state('n'), html_manual_direction('o'), html_jaw_open(false),
+        html_speed(0), html_turn_rate(0)
     {
     }
     Behavior(const Behavior &old) {}

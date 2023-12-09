@@ -294,7 +294,7 @@ public:
     static void handleJawClose()
     {
         Jaw = CLOSE;
-        Serial.println("Jaw cLOSE");
+        Serial.println("Jaw Close");
         message.write("broadcast");
     }
 };

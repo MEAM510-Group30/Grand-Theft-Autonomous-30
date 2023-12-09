@@ -115,6 +115,9 @@ public:
     float target_y;
     float target_theta;
 
+    // For moveToPosition function
+    bool turnToHeadingFinished;
+
     // Constructor with initialization list
     Actions() : MOTOR_L(MOTOR_L_PWM, MOTOR_L_DIR1, MOTOR_L_DIR2, LEDC_CHA_0, LEDC_RES_BITS, LEDC_FREQ),
                 MOTOR_R(MOTOR_R_PWM, MOTOR_R_DIR1, MOTOR_R_DIR2, LEDC_CHA_1, LEDC_RES_BITS, LEDC_FREQ),
@@ -127,7 +130,12 @@ public:
                 moveActionMode(STOP), jawActionMode(JAW_HOLD),
                 html_speed(0), html_turnRate(50),
                 desSpeedL(0), desSpeedR(0), PIDSpeedL(0), PIDSpeedR(0),
-                servoAngleJaw(0), servoAngleIR(0)
+                servoAngleJaw(0), servoAngleIR(0),
+                IRServoMode(0),
+                tof_side(0), tof_front(0),
+                current_x(0), current_y(0), current_theta(0),
+                target_x(0), target_y(0), target_theta(0),
+                turnToHeadingFinished(false)
     {
         // ledcSetup(LEDC_CHA_0, LEDC_FREQ, LEDC_RES_BITS);
         // ledcSetup(LEDC_CHA_1, LEDC_FREQ, LEDC_RES_BITS);
@@ -464,7 +472,7 @@ public:
         setMotorSpeed(MOTOR_R, PIDSpeedR);
     }
 
-    void turnToHeading(float heading)
+    void turnToHeading(float heading, float threshold=5.0)
     {
         // Turn to the specified heading
         // The heading is in degrees, and 0 degree is the x+ axis
@@ -479,11 +487,11 @@ public:
             delta_theta += 360;
         }
 
-        if (delta_theta > 5)
+        if (delta_theta > threshold)
         {
             turnLeftSamePlace();
         }
-        else if (delta_theta < -5)
+        else if (delta_theta < -threshold)
         {
             turnRightSamePlace();
         }
@@ -494,24 +502,27 @@ public:
 
     }
 
-    void moveToPosition(float x, float y, float threshold=10.0)
+    void moveToPosition(float x, float y, float threshold=10.0, float angle_threshold=5.0)
     {
         // Write the target position to target_x and target_y
         target_x = x;
-        target_y = y;
-        
-        // Head towards the target position
+        target_y = y;        
         target_theta = atan2(target_y - current_y, target_x - current_x) * 180 / PI;
-        turnToHeading(target_theta);
-        
-        // Move forward
-        if (((current_x - target_x) * (current_x - target_x) + (current_y - target_y) * (current_y - target_y) > threshold * threshold))
+
+        if (abs(current_theta - target_theta) > angle_threshold) // Head towards the target position
         {
-            moveForward();
+            turnToHeading(target_theta, angle_threshold);
         }
-        else
+        else // Move forward
         {
-            stop();
+            if (((current_x - target_x) * (current_x - target_x) + (current_y - target_y) * (current_y - target_y) > threshold * threshold))
+            {
+                moveForward();
+            }
+            else
+            {
+                stop();
+            }
         }
     }
 

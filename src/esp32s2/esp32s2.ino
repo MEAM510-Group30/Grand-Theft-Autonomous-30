@@ -47,7 +47,8 @@ Behavior behavior = Behavior();
 
 // communication classes
 web_commun html = web_commun();
-UDP_broadcast udp = UDP_broadcast(IPAddress(192, 168, 1, 142));
+UDP_broadcast udp_police = UDP_broadcast(IPAddress(192, 168, 1, 142));
+UDP_broadcast udp_myPosition = UDP_broadcast(IPAddress(192, 168, 1, 142));
 Serial_commun c3(19, 20);
 esp_now esp = esp_now();
 
@@ -129,6 +130,7 @@ void loop()
     // website cmd checking and global variables updating
     commun_Mode web_mode = html.mode;
     commun_Actions web_action = html.action;
+    commun_Jaw web_jaw = html.Jaw;
 
     char html_state;
     char html_manual_direction;
@@ -159,6 +161,7 @@ void loop()
         html_state = 'n';
         break;
     }
+
     switch (web_action)
     {
     case commun_FORWARD:
@@ -178,6 +181,20 @@ void loop()
         html_manual_direction = 'o';
         break;
     }
+
+    switch (web_jaw)
+    {
+    case commun_OPEN:
+        html_if_jaw_open = true;
+        break;
+    case commun_CLOSE:
+        html_if_jaw_open = false;
+        break;
+    default:
+        html_if_jaw_open = true;  // default is open
+        break;
+    }
+
 
     // s2 sensors reading
     sensors.updateEncoder();
