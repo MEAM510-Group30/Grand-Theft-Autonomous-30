@@ -5,6 +5,7 @@
 #ifndef C3_I2C_H
 #define C3_I2C_H
 
+#include <SoftwareSerial.h>
 // Include any necessary headers here
 class Serial_commun
 { // use this class in main to communicate between two boards. to initialize, give tx and rx
