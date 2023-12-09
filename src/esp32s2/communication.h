@@ -33,6 +33,12 @@ enum commun_Actions
     commun_CLOSE
 };
 
+enum commun_Jaw
+{
+    OPEN,
+    CLOSE
+};
+
 class esp_now
 {                 // remember to initialize; use member function sendMessage() to send group number
 #define CHANNEL 1 // channel can be 1 to 14, channel 0 means current channel.
@@ -140,6 +146,7 @@ public:
     static Serial_commun message;
     static commun_Mode mode;
     static commun_Actions action;
+    static commun_Jaw Jaw;
     static int speed;
     static int turnRate;
     static HTML510Server html_server;
@@ -278,14 +285,14 @@ public:
 
     static void handleJawOpen()
     {
-        action = commun_OPEN;
+        Jaw = OPEN;
         Serial.println("Jaw Open");
         message.write("broadcast");
     }
 
     static void handleJawClose()
     {
-        action = commun_CLOSE;
+        Jaw = CLOSE;
         Serial.println("Jaw cLOSE");
         message.write("broadcast");
     }
@@ -298,6 +305,7 @@ int web_commun::speed = 0;
 int web_commun::turnRate = 50;
 WiFiServer web_commun::server(80);
 Serial_commun web_commun::message(4, 5);
+commun_Jaw web_commun::Jaw = OPEN;
 
 class UDP_broadcast
 { // use mamber function sendXY to broadcast
