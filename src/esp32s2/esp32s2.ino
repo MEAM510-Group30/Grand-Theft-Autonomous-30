@@ -10,6 +10,8 @@
 */
 
 #include <stdio.h>
+#include <Wire.h>
+#include "VL53L0X.h"
 #include "esp_log.h"
 #include "driver/i2c.h"
 #include "sdkconfig.h"
@@ -52,6 +54,113 @@ UDP_broadcast udp_myPosition = UDP_broadcast(IPAddress(192, 168, 1, 142));
 Serial_commun c3(19, 20);
 esp_now esp = esp_now();
 
+#define SENSOR1_SHUTDOWN_PIN 39
+#define SENSOR2_SHUTDOWN_PIN 33
+#define SENSOR1_ADDRESS 0x30
+#define SENSOR2_ADDRESS 0x40
+
+// IR
+#define Sensor1 15
+#define Sensor2 16
+
+VL53L0X sensor1;
+VL53L0X sensor2;
+
+int readTOF(VL53L0X sensor)
+{
+    int sens;
+    sens = sensor.readRangeContinuousMillimeters();
+    return sens - 20;
+}
+
+int myfreq(int PINUM)
+{
+    int vol;
+    int highvol = 2400;
+    int lowvol = 1800;
+    unsigned long int curtime;
+    unsigned long int t0;
+    unsigned long int t1;
+    int i = 0;
+    while (1)
+    {
+        vol = analogRead(PINUM);
+        curtime = micros();
+        if (vol > lowvol)
+        {
+            break;
+        } // break when rising edge
+        i++;
+        if (i > 500)
+        {
+            return 999;
+        }
+    }
+    i = 0;
+    t0 = curtime;
+    while (1)
+    {
+        vol = analogRead(PINUM);
+        if (vol < lowvol)
+        {
+            break;
+        }
+        i++;
+        if (i > 500)
+        {
+            return 999;
+        }
+    }
+    i = 0;
+    while (1)
+    {
+        vol = analogRead(PINUM);
+        curtime = micros();
+        if (vol > lowvol)
+        {
+            break;
+        } // break when rising edge
+        i++;
+        if (i > 500)
+        {
+            return 999;
+        }
+    }
+    t1 = curtime;
+    unsigned long int period = t1 - t0;
+    double frequency = 1000000.0 / period;
+    int signalState1;
+    if (frequency > 500.0 && frequency < 600.0)
+    {
+        signalState1 = 1;
+    }
+    else if (frequency > 20.0 && frequency < 30.0)
+    {
+        signalState1 = 2;
+    }
+    else
+    {
+        signalState1 = 3;
+    }
+    switch (signalState1)
+    {
+    case 1:
+        // Serial.println("Detected 550Hz signal.");
+        return 550;
+        break;
+    case 2:
+        // Serial.println("Detected 23Hz signal.");
+        return 23;
+        break;
+    case 3:
+        // Serial.println("\nNo Signal!");
+        return 999;
+        break;
+    }
+    Serial.println("Time Out!");
+    return 999;
+}
+
 void setup()
 {
     Serial.begin(115200);
@@ -60,11 +169,49 @@ void setup()
 
     html.initial(IPAddress(192, 168, 1, 142)); // ## To be changed
 
+    
+    Wire.begin(19, 20); // SDA on 19, SCL on 20
+    pinMode(SENSOR1_SHUTDOWN_PIN, OUTPUT);
+    pinMode(SENSOR2_SHUTDOWN_PIN, OUTPUT);
+    digitalWrite(SENSOR1_SHUTDOWN_PIN, LOW);
+    digitalWrite(SENSOR2_SHUTDOWN_PIN, LOW);
+    
+    // Start tof1
+    digitalWrite(SENSOR1_SHUTDOWN_PIN, HIGH);
+    sensor1.init(true);
+
+    sensor1.setAddress(SENSOR1_ADDRESS);
+    // Start tof2
+    digitalWrite(SENSOR2_SHUTDOWN_PIN, HIGH);
+
+    sensor2.init(true);
+
+    sensor2.setAddress(SENSOR2_ADDRESS);
+    // Set the sensors to long range mode
+    sensor1.setSignalRateLimit(0.1);
+    sensor1.setVcselPulsePeriod(VL53L0X::VcselPeriodPreRange, 18);
+    sensor1.setVcselPulsePeriod(VL53L0X::VcselPeriodFinalRange, 14);
+    sensor1.startContinuous();
+    sensor2.setSignalRateLimit(0.1);
+    sensor2.setVcselPulsePeriod(VL53L0X::VcselPeriodPreRange, 18);
+    sensor2.setVcselPulsePeriod(VL53L0X::VcselPeriodFinalRange, 14);
+    sensor2.startContinuous();
+
+    behavior.html_state = 't';
+    
     delay(1000);
 }
 
 void loop()
 {
+    // put your main code here, to run repeatedly:
+    // int tofdis1 = readTOF(sensor1);
+    int tofdis2 = readTOF(sensor2);
+    Serial.print("\nTOF Front: ");
+    Serial.print(tofdis2);
+    int irsensor1 = myfreq(Sensor1);
+    int irsensor2 = myfreq(Sensor2);
+    
     // ### Motor Test Code ###
 
     // should always be commented when not testing
@@ -74,6 +221,7 @@ void loop()
     // action.grabTrophy();
     // action.setMotorSpeed(actions.MOTOR_R, 3000);  // right wheel
     // action.setMotorSpeed(actions.MOTOR_L, 3200);  // left wheel
+    // behavior.action.turnRightSamePlace(600);
 
     // ### Single Vive Test Code ###
 
@@ -108,12 +256,13 @@ void loop()
     // Serial.print(sensors.vive_theta);
     // delay(150);
 
+
     // ### PID Same Place Turning Test Code ###
 
-    sensors.updateEncoder();
-    behavior.action.updateActualSpeed(sensors.speed_L, sensors.speed_R);
-    behavior.updateBehaviorClassSensors(500, 500, sensors.vive_x_mm, sensors.vive_y_mm, sensors.vive_theta, 9999, 9999, 9999);
-    
+    // sensors.updateEncoder();
+    // behavior.action.updateActualSpeed(sensors.speed_L, sensors.speed_R);
+    behavior.updateBehaviorClassSensors(tofdis2, 500, sensors.vive_x_mm, sensors.vive_y_mm, sensors.vive_theta, 9999, 9999, irsensor1, irsensor2);
+
 
     // // behavior.updateBehaviorClassHTMLVariables(...);
     // // behavior.updateBehaviorClassSensorVariables(...);
@@ -123,7 +272,7 @@ void loop()
     // // must be called before taking actions that uses PID speed control
     // action.updateActualSpeed(sensors.speed_L, sensors.speed_R);
 
-    behavior.action.turnLeftSamePlace();
+    // behavior.action.turnLeftSamePlace();
     // // action.MOTOR_L.setSpeed(2000);
     // // action.MOTOR_R.setSpeed(-2000);
 
@@ -138,7 +287,7 @@ void loop()
 
     // // action.moveBackward(-2000);
 
-    // delay(50);
+
 
     // ### Test Code for moveTo functions ###
 
@@ -150,12 +299,17 @@ void loop()
 
     // behavior.testMoveToFunctionInActionsClass();
 
-    delay(50);
 
+    // ### Test code for wall following
 
+    // behavior.html_state = 'w';
+    // behavior.tof_front = tofdis2;
 
+    // ### Test code for trophy
 
-
+    // behavior.html_state = 't';
+    behavior.runBehaviorTree();
+    
     // // ### Main Code ###
     // // should comment all other test code when using
 
@@ -259,5 +413,5 @@ void loop()
     // behavior.runBehaviorTree();
     
     // // delay a little bit
-    // delay(50);
+    delay(20);
 }

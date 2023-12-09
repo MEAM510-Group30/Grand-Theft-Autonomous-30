@@ -129,7 +129,7 @@ public:
                 // PID_pos_x(kp = 0.1, ki = 0.0, kd = 0.0), PID_pos_y(kp = 0.1, ki = 0.0, kd = 0.0),
                 ACTUAL_SPEED_L(0), ACTUAL_SPEED_R(0),
                 moveActionMode(STOP), jawActionMode(JAW_HOLD),
-                html_speed(3000), html_turnRate(50),
+                html_speed(3600), html_turnRate(50),
                 desSpeedL(0), desSpeedR(0), PIDSpeedL(0), PIDSpeedR(0),
                 servoAngleJaw(0), servoAngleIR(0),
                 IRServoMode(0),
@@ -212,8 +212,11 @@ public:
         // therefore shouldn't be used directly in checkoff
         // speed itself can be positive or negative
         // here we want the car go forward regardless of the +/- sign of speed
-        setMotorSpeed(MOTOR_L, abs(speed));
-        setMotorSpeed(MOTOR_R, abs(speed));
+        desSpeedL = abs(speed);
+        desSpeedR = abs(speed);
+        PIDSpeedCalibration();
+        setMotorSpeed(MOTOR_L, abs(PIDSpeedL));
+        setMotorSpeed(MOTOR_R, abs(PIDSpeedR));
         moveActionMode = MOVE_FORWARD;
     }
 
@@ -394,6 +397,8 @@ public:
         setMotorSpeed(MOTOR_L, abs(PIDSpeedL));
         setMotorSpeed(MOTOR_R, -abs(PIDSpeedR));
         moveActionMode = SAME_PLACE_RIGHT;
+
+        Serial.print("##");
     }
 
     void turnRightSamePlace() // overload without speed parameter

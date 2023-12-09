@@ -119,22 +119,6 @@ public:
         time_current_ms = (float) millis();
         time_previous_ms = (float) millis();
     }
-
-    // Control functions
-    // float positionControl(float reference, float actual)
-    // {
-    //     // TODO: Implement position control
-    //     ;
-    // }
-
-
-    // float velocityControl(float reference, float actual)
-    // {
-    //     // TODO: Implement velocity control
-    //     ;
-    // }
-
-
 };
 
 #endif
