@@ -227,9 +227,15 @@ private:
         }
     }
 
-    void trophyMoving()
+    void trophyMoving(int trophy_freq = 550)
     {
-        // Logic for trophy-moving mode
+        // Logic for trophy-moving mode 
+
+        // Step I: find and move to trophy
+
+        // Step II:
+
+        // Step III:
     }
 
     void fullyManual()
@@ -250,6 +256,7 @@ private:
             action.turnRight(html_speed, html_turn_rate);
             break;
         case 'o':
+        case 's':
         default:
             action.stop();
             break;
@@ -329,7 +336,7 @@ public:
         html_turn_rate = turn_rate;
     }
 
-    void updateBehaviorClassSensorsData(uint8_t front, uint8_t left, int x, int y, int theta, int police_x, int police_y, int trophy_direction)
+    void updateBehaviorClassSensors(uint8_t front, uint8_t left, int x, int y, int theta, int police_x, int police_y, int trophy_direction)
     {
         // Call this function in the main loop to update all sensors data in this class
         tof_front = front;

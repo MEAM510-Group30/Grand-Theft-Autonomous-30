@@ -19,6 +19,7 @@ enum commun_Mode
     commun_PUSH,
     commun_TROPHY,
     commun_MANUAL,
+    commun_AUTO,
     commun_NOTHING
 };
 

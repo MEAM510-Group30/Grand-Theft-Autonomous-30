@@ -2,9 +2,9 @@
     Author:
 
         @jbwenjoy: Furina de Fontaine
-    
-    Description: 
-    
+
+    Description:
+
         This is the main Arduino file for the ESP32-S2 robot.
 
 */
@@ -30,9 +30,8 @@
 #include "actions_motor.h"
 #include "actions_servo.h"
 
-
-// actions is a global variable containing: 
-// pin definitions, ledc pwm parameters, two motor and two servo objects, 
+// actions is a global variable containing:
+// pin definitions, ledc pwm parameters, two motor and two servo objects,
 // and basic actions of specifying motor speeds and servo angles
 // This gloabl variable is only for debugging purposes
 // In the final version, the actions object should be created in the behavior class
@@ -52,24 +51,26 @@ UDP_broadcast udp = UDP_broadcast(IPAddress(192, 168, 1, 142));
 Serial_commun c3(19, 20);
 esp_now esp = esp_now();
 
-
-
-
-void setup() {
+void setup()
+{
     Serial.begin(115200);
+    // Setup serial communication
     c3.softSerial.begin(9600);
+
+    html.initial(IPAddress(192, 168, 1, 142)); // ## To be changed
 }
 
-void loop() {
+void loop()
+{
     // ### Motor Test Code ###
 
     // should always be commented when not testing
     // should comment all other code when testing
-    
+
     // actions.moveForward(1000);
     // actions.setMotorSpeed(actions.MOTOR_R, 3000);  // right wheel
     // actions.setMotorSpeed(actions.MOTOR_L, 3000);  // left wheel
-    
+
     // ### Single Vive Test Code ###
 
     // sensors.updateVive();
@@ -120,28 +121,94 @@ void loop() {
 
     // // actions.moveBackward(-2000);
 
+    // delay(50);
+
+    // ### Main Code ###
+    // should comment all other test code when using
+
+    // website cmd checking and global variables updating
+    commun_Mode web_mode = html.mode;
+    commun_Actions web_action = html.action;
+
+    char html_state;
+    char html_manual_direction;
+    bool html_if_jaw_open = true;
+    int html_speed = html.speed;
+    int html_turn_rate = html.turnRate;
+
+    // map html modes to behavior modes
+    switch (web_mode)
+    {
+    case commun_WALL:
+        html_state = 'w';
+        break;
+    case commun_PUSH:
+        html_state = 'p';
+        break;
+    case commun_TROPHY:
+        html_state = 't';
+        break;
+    case commun_MANUAL:
+        html_state = 'm';
+        break;
+    case commun_AUTO:
+        html_state = 'a';
+        break;
+    case commun_NOTHING:
+    default:
+        html_state = 'n';
+        break;
+    }
+    switch (web_action)
+    {
+    case commun_FORWARD:
+        html_manual_direction = 'f';
+        break;
+    case commun_BACKWARD:
+        html_manual_direction = 'b';
+        break;
+    case commun_LEFT:
+        html_manual_direction = 'l';
+        break;
+    case commun_RIGHT:
+        html_manual_direction = 'r';
+        break;
+    case commun_STOP:
+    default:
+        html_manual_direction = 'o';
+        break;
+    }
+
+    // s2 sensors reading
+    sensors.updateEncoder();
+    sensors.updateVive();
+
+    // c3 sensors reading through serial communication
+    // c3 data: 2 x ToF data, 2 x IR sensor frequancy, 1 x police car broadcast
+    c3.read();
+    String serial_msg = c3.msg;
+    int tof_front = 9999; // default no dectection values
+    int tof_left = 9999;
+    int ir_freq_1 = 999;
+    int ir_freq_2 = 999;
+    int trophy_direction = 999; // should be -180 to 180
+    int police_x_mm = 9999;
+    int police_y_mm = 9999;
+    // TODO: decide how to parse serial_msg
+    // we need to generate 
+
+    // police position reading through udp broadcast
+    // TODO: decide how to parse udp_msg
+
+    // behavior variables updating
+    behavior.updateBehaviorClassHTMLVariables(html_state, html_manual_direction, html_if_jaw_open, html_speed, html_turn_rate);
+    behavior.updateBehaviorClassSensors(tof_front, tof_left,
+                                                sensors.vive_x_mm, sensors.vive_y_mm, sensors.vive_theta,
+                                                police_x_mm, police_y_mm, trophy_direction);
+
+    // run behavior tree
+    behavior.runBehaviorTree();
+    //
+
     delay(50);
-
-    // // ### Main Code ###
-
-    // // should comment all other test code when using
-
-    // // website cmd checking and global variables updating
-    
-
-    // // sensor reading and global variables updating
-    // sensors.updateEncoder();
-    // sensors.updateVive();
-    // // behavior.updateBehaviorClassHTMLVariables(html_state, html_manual_direction, html_if_jaw_open, html_speed, html_turn_rate);
-    // // behavior.updateBehaviorClassSensorVariables(tof_front, tof_left,
-    // //                                             sensors.vive_x_mm, sensors.vive_y_mm, sensors.vive_theta, 
-    // //                                             police_x_mm, police_y_mm, trophy_direction);
-
-    
-
-
-    // // run behavior tree
-
-    // // 
-
 }
