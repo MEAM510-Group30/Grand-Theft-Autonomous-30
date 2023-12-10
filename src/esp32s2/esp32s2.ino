@@ -49,8 +49,8 @@ Behavior behavior = Behavior();
 
 // communication classes
 // web_commun html = web_commun();
-// UDP_broadcast udp_police = UDP_broadcast(IPAddress(192, 168, 1, 142));
-// UDP_broadcast udp_myPosition = UDP_broadcast(IPAddress(192, 168, 1, 142));
+UDP_broadcast udp_police = UDP_broadcast(IPAddress(192, 168, 1, 142));
+UDP_broadcast udp_myPosition = UDP_broadcast(IPAddress(192, 168, 1, 142));
 Serial_commun c3(19, 20);
 // esp_now esp = esp_now();
 
@@ -62,6 +62,14 @@ Serial_commun c3(19, 20);
 // IR
 #define Sensor1 15
 #define Sensor2 16
+
+// GPIO HIGH/LOW commmunication
+#define JAW 4
+#define action1 5
+#define action2 6
+#define action3 7
+#define mode1 15
+#define mode2 16
 
 VL53L0X sensor1;
 VL53L0X sensor2;
