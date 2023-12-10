@@ -48,11 +48,11 @@ Sensors sensors = Sensors();
 Behavior behavior = Behavior();
 
 // communication classes
-web_commun html = web_commun();
-UDP_broadcast udp_police = UDP_broadcast(IPAddress(192, 168, 1, 142));
-UDP_broadcast udp_myPosition = UDP_broadcast(IPAddress(192, 168, 1, 142));
+// web_commun html = web_commun();
+// UDP_broadcast udp_police = UDP_broadcast(IPAddress(192, 168, 1, 142));
+// UDP_broadcast udp_myPosition = UDP_broadcast(IPAddress(192, 168, 1, 142));
 Serial_commun c3(19, 20);
-esp_now esp = esp_now();
+// esp_now esp = esp_now();
 
 #define SENSOR1_SHUTDOWN_PIN 39
 #define SENSOR2_SHUTDOWN_PIN 33
@@ -161,13 +161,80 @@ int myfreq(int PINUM)
     return 999;
 }
 
+
+void fsm()
+{
+    if (digitalRead(JAW) == HIGH)
+    {
+        Serial.println("JAW OPEN");
+        behavior.html_state = 'm';
+        behavior.action.releaseTrophy();
+    }
+    else
+        Serial.println("JAW CLOSE");
+        behavior.html_state = 'm';
+        behavior.action.grabTrophy();
+
+    if (digitalRead(action1) == HIGH && digitalRead(action2) == HIGH && digitalRead(action3) == HIGH)
+    {
+        Serial.println("Forward");
+        behavior.html_state = 'm';
+        behavior.html_manual_direction = 'f';
+    }
+    else if (digitalRead(action1) == HIGH && digitalRead(action2) == HIGH && digitalRead(action3) == LOW)
+    {
+        Serial.println("Backward");
+        behavior.html_state = 'm';
+        behavior.html_manual_direction = 'b';
+    }
+    else if (digitalRead(action1) == HIGH && digitalRead(action2) == LOW && digitalRead(action3) == LOW)
+    {
+        Serial.println("Left");
+        behavior.html_state = 'm';
+        behavior.html_manual_direction = 'l';
+    }
+    else if (digitalRead(action1) == HIGH && digitalRead(action2) == LOW && digitalRead(action3) == HIGH)
+    {
+        Serial.println("Right");
+        behavior.html_state = 'm';
+        behavior.html_manual_direction = 'r';
+    }
+    else if (digitalRead(action1) == LOW && digitalRead(action2) == HIGH && digitalRead(action3) == HIGH)
+    {
+        Serial.println("Stop");
+        behavior.html_state = 'm';
+        behavior.html_manual_direction = 'o';
+    }
+
+    if (digitalRead(mode1) == HIGH && digitalRead(mode2) == HIGH)
+    {
+        Serial.println("Trophy");
+        behavior.html_state = 't';
+    }
+    else if (digitalRead(mode1) == HIGH && digitalRead(mode2) == LOW)
+    {
+        Serial.println("Push");
+        behavior.html_state = 'p';
+    }
+    else if (digitalRead(mode1) == LOW && digitalRead(mode2) == HIGH)
+    {
+        Serial.println("Wall");
+        behavior.html_state = 'w';
+    }
+    else if (digitalRead(mode1) == LOW && digitalRead(mode2) == LOW)
+    {
+        Serial.println("Manual");
+        behavior.html_state = 'm';
+    }
+}
+
 void setup()
 {
     Serial.begin(115200);
     // Setup serial communication
     c3.softSerial.begin(9600);
 
-    html.initial(IPAddress(192, 168, 1, 142)); // ## To be changed
+    // html.initial(IPAddress(192, 168, 1, 142)); // ## To be changed
 
     
     Wire.begin(19, 20); // SDA on 19, SCL on 20
@@ -175,6 +242,15 @@ void setup()
     pinMode(SENSOR2_SHUTDOWN_PIN, OUTPUT);
     digitalWrite(SENSOR1_SHUTDOWN_PIN, LOW);
     digitalWrite(SENSOR2_SHUTDOWN_PIN, LOW);
+
+
+    // Use serial port to communicate with c3 and then with website
+    pinMode(JAW, INPUT);     // JAW
+    pinMode(action1, INPUT); // action1
+    pinMode(action2, INPUT); // action2
+    pinMode(action3, INPUT); // action3
+    pinMode(mode1, INPUT);   // mode1
+    pinMode(mode2, INPUT);   // mode2
     
     // Start tof1
     digitalWrite(SENSOR1_SHUTDOWN_PIN, HIGH);
@@ -204,6 +280,8 @@ void setup()
 
 void loop()
 {
+    fsm();
+    
     // put your main code here, to run repeatedly:
     // int tofdis1 = readTOF(sensor1);
     int tofdis2 = readTOF(sensor2);
