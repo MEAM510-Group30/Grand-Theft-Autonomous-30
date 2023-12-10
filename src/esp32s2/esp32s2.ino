@@ -244,7 +244,7 @@ void setup()
     digitalWrite(SENSOR2_SHUTDOWN_PIN, LOW);
 
 
-    // Use serial port to communicate with c3 and then with website
+    // Use HIGH/LOW of gpio port to communicate with c3 and then with website
     pinMode(JAW, INPUT);     // JAW
     pinMode(action1, INPUT); // action1
     pinMode(action2, INPUT); // action2
