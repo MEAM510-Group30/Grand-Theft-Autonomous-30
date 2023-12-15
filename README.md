@@ -1,5 +1,5 @@
-# Grand-Theft-Automation-G30
-This is the repository for project Grand Theft Automation @ MEAM5100 UPenn
+# Grand-Theft-Autonomous-G30
+This is the repository for project Grand Theft Autonomous @ MEAM5100 UPenn
 
 ## Software Architecture:
 
