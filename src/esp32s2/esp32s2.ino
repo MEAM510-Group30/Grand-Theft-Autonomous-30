@@ -64,12 +64,12 @@ Serial_commun c3(19, 20);
 #define Sensor2 16
 
 // GPIO HIGH/LOW commmunication
-#define JAW 4
-#define action1 5
-#define action2 6
-#define action3 7
-#define mode1 15
-#define mode2 16
+// #define action1 11  // c3: 6
+// #define action2 9  // c3: 7
+// #define action3 10  // c3: 8
+#define mode1 9  // c3: 6
+#define mode2 10  // c3: 7
+#define JAW 17  // c3: 19
 
 VL53L0X sensor1;
 VL53L0X sensor2;
@@ -169,55 +169,55 @@ int myfreq(int PINUM)
     return 999;
 }
 
-
 void fsm()
 {
-    if (digitalRead(JAW) == HIGH)
-    {
-        Serial.println("JAW OPEN");
-        behavior.html_state = 'm';
-        behavior.action.releaseTrophy();
-    }
-    else
-        Serial.println("JAW CLOSE");
-        behavior.html_state = 'm';
-        behavior.action.grabTrophy();
+    // if (digitalRead(JAW) == HIGH)
+    // {
+    //     Serial.println("JAW OPEN");
+    //     behavior.html_state = 'm';
+    //     behavior.action.releaseTrophy();
+    // }
+    // else
+    //     Serial.println("JAW CLOSE");
+    // behavior.html_state = 'm';
+    // behavior.action.grabTrophy();
 
-    if (digitalRead(action1) == HIGH && digitalRead(action2) == HIGH && digitalRead(action3) == HIGH)
-    {
-        Serial.println("Forward");
-        behavior.html_state = 'm';
-        behavior.html_manual_direction = 'f';
-    }
-    else if (digitalRead(action1) == HIGH && digitalRead(action2) == HIGH && digitalRead(action3) == LOW)
-    {
-        Serial.println("Backward");
-        behavior.html_state = 'm';
-        behavior.html_manual_direction = 'b';
-    }
-    else if (digitalRead(action1) == HIGH && digitalRead(action2) == LOW && digitalRead(action3) == LOW)
-    {
-        Serial.println("Left");
-        behavior.html_state = 'm';
-        behavior.html_manual_direction = 'l';
-    }
-    else if (digitalRead(action1) == HIGH && digitalRead(action2) == LOW && digitalRead(action3) == HIGH)
-    {
-        Serial.println("Right");
-        behavior.html_state = 'm';
-        behavior.html_manual_direction = 'r';
-    }
-    else if (digitalRead(action1) == LOW && digitalRead(action2) == HIGH && digitalRead(action3) == HIGH)
-    {
-        Serial.println("Stop");
-        behavior.html_state = 'm';
-        behavior.html_manual_direction = 'o';
-    }
+    // if (digitalRead(action1) == HIGH && digitalRead(action2) == HIGH && digitalRead(action3) == HIGH)
+    // {
+    //     Serial.println("Forward");
+    //     behavior.html_state = 'm';
+    //     behavior.html_manual_direction = 'f';
+    // }
+    // else if (digitalRead(action1) == HIGH && digitalRead(action2) == HIGH && digitalRead(action3) == LOW)
+    // {
+    //     Serial.println("Backward");
+    //     behavior.html_state = 'm';
+    //     behavior.html_manual_direction = 'b';
+    // }
+    // else if (digitalRead(action1) == HIGH && digitalRead(action2) == LOW && digitalRead(action3) == LOW)
+    // {
+    //     Serial.println("Left");
+    //     behavior.html_state = 'm';
+    //     behavior.html_manual_direction = 'l';
+    // }
+    // else if (digitalRead(action1) == HIGH && digitalRead(action2) == LOW && digitalRead(action3) == HIGH)
+    // {
+    //     Serial.println("Right");
+    //     behavior.html_state = 'm';
+    //     behavior.html_manual_direction = 'r';
+    // }
+    // else if (digitalRead(action1) == LOW && digitalRead(action2) == HIGH && digitalRead(action3) == HIGH)
+    // {
+    //     Serial.println("Stop");
+    //     behavior.html_state = 'm';
+    //     behavior.html_manual_direction = 'o';
+    // }
 
     if (digitalRead(mode1) == HIGH && digitalRead(mode2) == HIGH)
     {
         Serial.println("Trophy");
         behavior.html_state = 't';
+        
     }
     else if (digitalRead(mode1) == HIGH && digitalRead(mode2) == LOW)
     {
@@ -244,22 +244,24 @@ void setup()
 
     // html.initial(IPAddress(192, 168, 1, 142)); // ## To be changed
 
-    
     Wire.begin(19, 20); // SDA on 19, SCL on 20
     pinMode(SENSOR1_SHUTDOWN_PIN, OUTPUT);
     pinMode(SENSOR2_SHUTDOWN_PIN, OUTPUT);
     digitalWrite(SENSOR1_SHUTDOWN_PIN, LOW);
     digitalWrite(SENSOR2_SHUTDOWN_PIN, LOW);
 
+    // UDP init
+    udp_myPosition.initialBroadcast();
+    udp_police.initialBroadcast();
 
     // Use HIGH/LOW of gpio port to communicate with c3 and then with website
     pinMode(JAW, INPUT);     // JAW
-    pinMode(action1, INPUT); // action1
-    pinMode(action2, INPUT); // action2
-    pinMode(action3, INPUT); // action3
+    // pinMode(action1, INPUT); // action1
+    // pinMode(action2, INPUT); // action2
+    // pinMode(action3, INPUT); // action3
     pinMode(mode1, INPUT);   // mode1
     pinMode(mode2, INPUT);   // mode2
-    
+
     // Start tof1
     digitalWrite(SENSOR1_SHUTDOWN_PIN, HIGH);
     sensor1.init(true);
@@ -282,22 +284,12 @@ void setup()
     sensor2.startContinuous();
 
     behavior.html_state = 't';
-    
+
     delay(1000);
 }
 
 void loop()
 {
-    fsm();
-    
-    // put your main code here, to run repeatedly:
-    // int tofdis1 = readTOF(sensor1);
-    int tofdis2 = readTOF(sensor2);
-    Serial.print("\nTOF Front: ");
-    Serial.print(tofdis2);
-    int irsensor1 = myfreq(Sensor1);
-    int irsensor2 = myfreq(Sensor2);
-    
     // ### Motor Test Code ###
 
     // should always be commented when not testing
@@ -342,13 +334,11 @@ void loop()
     // Serial.print(sensors.vive_theta);
     // delay(150);
 
-
     // ### PID Same Place Turning Test Code ###
 
     // sensors.updateEncoder();
     // behavior.action.updateActualSpeed(sensors.speed_L, sensors.speed_R);
-    behavior.updateBehaviorClassSensors(tofdis2, 500, sensors.vive_x_mm, sensors.vive_y_mm, sensors.vive_theta, 9999, 9999, irsensor1, irsensor2);
-
+    // behavior.updateBehaviorClassSensors(tofdis2, 500, sensors.vive_x_mm, sensors.vive_y_mm, sensors.vive_theta, 9999, 9999, irsensor1, irsensor2);
 
     // // behavior.updateBehaviorClassHTMLVariables(...);
     // // behavior.updateBehaviorClassSensorVariables(...);
@@ -373,8 +363,6 @@ void loop()
 
     // // action.moveBackward(-2000);
 
-
-
     // ### Test Code for moveTo functions ###
 
     // sensors.updateEncoder();
@@ -385,7 +373,6 @@ void loop()
 
     // behavior.testMoveToFunctionInActionsClass();
 
-
     // ### Test code for wall following
 
     // behavior.html_state = 'w';
@@ -394,83 +381,28 @@ void loop()
     // ### Test code for trophy
 
     // behavior.html_state = 't';
-    behavior.runBehaviorTree();
-    
-    // // ### Main Code ###
-    // // should comment all other test code when using
+    // behavior.runBehaviorTree();
 
-    // // website cmd checking and global variables updating
-    // commun_Mode web_mode = html.mode;
-    // commun_Actions web_action = html.action;
-    // commun_Jaw web_jaw = html.Jaw;
+    // ### Main Code ###
+    // should comment all other test code when using
 
-    // char html_state;
-    // char html_manual_direction;
-    // bool html_if_jaw_open = true;
-    // int html_speed = html.speed;
-    // int html_turn_rate = html.turnRate;
+    // Use finite state machine to receive commands from website
+    fsm();
 
-    // // map html modes to behavior modes
-    // switch (web_mode)
-    // {
-    // case commun_WALL:
-    //     html_state = 'w';
-    //     break;
-    // case commun_PUSH:
-    //     html_state = 'p';
-    //     break;
-    // case commun_TROPHY:
-    //     html_state = 't';
-    //     break;
-    // case commun_MANUAL:
-    //     html_state = 'm';
-    //     break;
-    // case commun_AUTO:
-    //     html_state = 'a';
-    //     break;
-    // case commun_NOTHING:
-    // default:
-    //     html_state = 'n';
-    //     break;
-    // }
+    // Read ToF and IR sensors
+    // int tofdis1 = readTOF(sensor1);  // Side is not neccessary
+    int tofdis2 = readTOF(sensor2); // Actually side ToF was installed at the front
+    Serial.print("\nTOF Front: ");
+    Serial.print(tofdis2);
+    int irsensor1 = myfreq(Sensor1);
+    int irsensor2 = myfreq(Sensor2);
 
-    // switch (web_action)
-    // {
-    // case commun_FORWARD:
-    //     html_manual_direction = 'f';
-    //     break;
-    // case commun_BACKWARD:
-    //     html_manual_direction = 'b';
-    //     break;
-    // case commun_LEFT:
-    //     html_manual_direction = 'l';
-    //     break;
-    // case commun_RIGHT:
-    //     html_manual_direction = 'r';
-    //     break;
-    // case commun_STOP:
-    // default:
-    //     html_manual_direction = 'o';
-    //     break;
-    // }
+    behavior.updateBehaviorClassSensors(tofdis2, 500, sensors.vive_x_mm, sensors.vive_y_mm, sensors.vive_theta, 9999, 9999, irsensor1, irsensor2);
 
-    // switch (web_jaw)
-    // {
-    // case commun_OPEN:
-    //     html_if_jaw_open = true;
-    //     break;
-    // case commun_CLOSE:
-    //     html_if_jaw_open = false;
-    //     break;
-    // default:
-    //     html_if_jaw_open = true;  // default is open
-    //     break;
-    // }
-
-
-    // // s2 sensors reading
-    // sensors.updateEncoder();
-    // sensors.updateVive();
+    // s2 sensors reading
+    sensors.updateEncoder();
+    sensors.updateVive();
+    behavior.action.updateActualSpeed(sensors.speed_L, sensors.speed_R);
 
     // // c3 sensors reading through serial communication
     // // c3 data: 2 x ToF data, 2 x IR sensor frequancy, 1 x police car broadcast
@@ -484,20 +416,20 @@ void loop()
     // int police_x_mm = 9999;
     // int police_y_mm = 9999;
     // // TODO: decide how to parse serial_msg
-    // // we need to generate 
+    // // we need to generate
 
     // // police position reading through udp broadcast
     // // TODO: decide how to parse udp_msg
 
     // // behavior variables updating
     // behavior.updateBehaviorClassHTMLVariables(html_state, html_manual_direction, html_if_jaw_open, html_speed, html_turn_rate);
-    // behavior.updateBehaviorClassSensors(tof_front, tof_left,
-    //                                             sensors.vive_x_mm, sensors.vive_y_mm, sensors.vive_theta,
-    //                                             police_x_mm, police_y_mm, trophy_direction);
+    behavior.updateBehaviorClassSensors(tofdis2, 500, sensors.vive_x_mm, sensors.vive_y_mm, sensors.vive_theta, 9999, 9999, irsensor1, irsensor2);
+
+    udp_myPosition.sendXY((int)sensors.vive_x_mm, (int)sensors.vive_y_mm);
 
     // // run behavior tree
-    // behavior.runBehaviorTree();
-    
-    // // delay a little bit
+    behavior.runBehaviorTree();
+
+    // delay a little bit at the end
     delay(20);
 }
