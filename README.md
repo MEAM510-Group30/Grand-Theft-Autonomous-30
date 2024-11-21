@@ -16,6 +16,33 @@ This is the repository for project Grand Theft Autonomous @ MEAM5100 UPenn
 
 * HTML510 library: provided by Prof. Mark Yim
 
+## Project Report
+
+![示例图片](report/MEAM_510_Final_Project_页面_01.png)
+![示例图片](report/MEAM_510_Final_Project_页面_02.png)
+![示例图片](report/MEAM_510_Final_Project_页面_03.png)
+
+![示例图片](report/MEAM_510_Final_Project_页面_04.png)
+![示例图片](report/MEAM_510_Final_Project_页面_05.png)
+![示例图片](report/MEAM_510_Final_Project_页面_06.png)
+
+![示例图片](report/MEAM_510_Final_Project_页面_07.png)
+![示例图片](report/MEAM_510_Final_Project_页面_08.png)
+![示例图片](report/MEAM_510_Final_Project_页面_09.png)
+
+![示例图片](report/MEAM_510_Final_Project_页面_10.png)
+![示例图片](report/MEAM_510_Final_Project_页面_11.png)
+![示例图片](report/MEAM_510_Final_Project_页面_12.png)
+
+![示例图片](report/MEAM_510_Final_Project_页面_13.png)
+![示例图片](report/MEAM_510_Final_Project_页面_14.png)
+![示例图片](report/MEAM_510_Final_Project_页面_15.png)
+
+![示例图片](report/MEAM_510_Final_Project_页面_16.png)
+![示例图片](report/MEAM_510_Final_Project_页面_17.png)
+![示例图片](report/MEAM_510_Final_Project_页面_18.png)
+
+
 ## Pin Assignment
 
 * 2 motor encoders, 2 each, 4 total

@@ -107,7 +107,8 @@ private:
 
     void wallFollowing() // Logic for wall-following mode
     {
-        int dist_to_turn_thres = 350; // distance threshold to turn at the corner, mm
+        action.wallFollowJaw();
+        int dist_to_turn_thres = 280; // distance threshold to turn at the corner, mm
         float previous_wall_theta;        // to record present theta when finish turning
         static int turn_cycle_count = 0;
 
@@ -125,10 +126,10 @@ private:
         }
         if (needTurnFlag) // if need to turn, turn right at the same place
         {
-            action.turnRightSamePlace();
+            action.turnRightSamePlace(2000);
             turn_cycle_count += 1;
             Serial.println("Wall.Right");
-            if (turn_cycle_count >= 3)
+            if (turn_cycle_count >= 2)
             {
                 needTurnFlag = false;
             }
@@ -137,7 +138,7 @@ private:
         {
 
             // action.followWallForward();
-            action.moveForward();
+            action.moveForwardnoPID(4000);
             turn_cycle_count = 0;
             Serial.println("Wall.Forward");
             previous_wall_theta = vive_theta;
@@ -148,97 +149,98 @@ private:
 
     void carPushing()
     {
-        // Logic for car-pushing mode
-        if (!carPushingInitFlag) // if not initialized, initialize
-        {
-            carPushingInitFlag = true;
-            carPushingApproachCarFlag = false;
-            carPushingApproachAlignFlag = false;
-            // Push the police car 400 mm along x+, set the target position
-            push_target_x = police_x + 400; // target x coordinate, mm
-            push_target_y = police_y;       // target y coordinate, mm
-            action.releaseTrophy();
-            Serial.println("Push.Init");
-        }
+        action.moveForwardnoPID(4000);
+        // // Logic for car-pushing mode
+        // if (!carPushingInitFlag) // if not initialized, initialize
+        // {
+        //     carPushingInitFlag = true;
+        //     carPushingApproachCarFlag = false;
+        //     carPushingApproachAlignFlag = false;
+        //     // Push the police car 400 mm along x+, set the target position
+        //     push_target_x = police_x + 400; // target x coordinate, mm
+        //     push_target_y = police_y;       // target y coordinate, mm
+        //     action.releaseTrophy();
+        //     Serial.println("Push.Init");
+        // }
 
-        if (comparePosition(push_target_x, push_target_y, police_x, police_y)) // if at the target position, stop pushing and do nothing
-        {
-            action.stop();
-            // reset flags
-            carPushingInitFlag = false;
-            carPushingApproachCarFlag = false;
-            carPushingApproachAlignFlag = false;
-            // reset mode
-            current_mode = NOTHING;
-            Serial.println("Push.Finished");
-        }
-        else // if not at the target position, push the car
-        {
-            // TODO: how to push the car
-            // More specifically:
-            //   how to approach the car: moveTo function
-            //   how to check if the car derivates from the line: vector calculation
-            //   how to recalculate the direction and realign: repeat the approach and align process
+        // if (comparePosition(push_target_x, push_target_y, police_x, police_y)) // if at the target position, stop pushing and do nothing
+        // {
+        //     action.stop();
+        //     // reset flags
+        //     carPushingInitFlag = false;
+        //     carPushingApproachCarFlag = false;
+        //     carPushingApproachAlignFlag = false;
+        //     // reset mode
+        //     current_mode = NOTHING;
+        //     Serial.println("Push.Finished");
+        // }
+        // else // if not at the target position, push the car
+        // {
+        //     // TODO: how to push the car
+        //     // More specifically:
+        //     //   how to approach the car: moveTo function
+        //     //   how to check if the car derivates from the line: vector calculation
+        //     //   how to recalculate the direction and realign: repeat the approach and align process
 
-            // Approach the car
-            if (!carPushingApproachCarFlag)
-            {
-                // generate target position
-                approach_target_x = police_x - 200;
-                approach_target_y = police_y;
+        //     // Approach the car
+        //     if (!carPushingApproachCarFlag)
+        //     {
+        //         // generate target position
+        //         approach_target_x = police_x - 200;
+        //         approach_target_y = police_y;
                 
-                // Update current position and heading before using moveTo function
-                action.current_x = vive_x;
-                action.current_y = vive_y;
-                action.current_theta = vive_theta;
-                action.moveToPosition(approach_target_x, approach_target_y);
+        //         // Update current position and heading before using moveTo function
+        //         action.current_x = vive_x;
+        //         action.current_y = vive_y;
+        //         action.current_theta = vive_theta;
+        //         action.moveToPosition(approach_target_x, approach_target_y);
 
-                Serial.println("Push.Approaching Car");
+        //         Serial.println("Push.Approaching Car");
 
-                if (comparePosition(approach_target_x, approach_target_y, police_x, police_y, 50.0))
-                {
-                    carPushingApproachCarFlag = true;
-                    Serial.println("Push.Approached Car");
-                }
-            }
-            // After approaching the car, align with the car and the target position
-            else if (!carPushingApproachAlignFlag)
-            {
-                // generate orientation
-                approach_target_theta = atan2(push_target_y - police_y, push_target_x - police_x) * 180 / PI;
+        //         if (comparePosition(approach_target_x, approach_target_y, police_x, police_y, 50.0))
+        //         {
+        //             carPushingApproachCarFlag = true;
+        //             Serial.println("Push.Approached Car");
+        //         }
+        //     }
+        //     // After approaching the car, align with the car and the target position
+        //     else if (!carPushingApproachAlignFlag)
+        //     {
+        //         // generate orientation
+        //         approach_target_theta = atan2(push_target_y - police_y, push_target_x - police_x) * 180 / PI;
                 
-                action.turnToHeading(approach_target_theta);
-                Serial.println("Push.Aligning");
-                if (compareOrientation(approach_target_theta, vive_theta))
-                {
-                    carPushingApproachAlignFlag = true;
-                    Serial.println("Push.Aligned");
-                }
+        //         action.turnToHeading(approach_target_theta);
+        //         Serial.println("Push.Aligning");
+        //         if (compareOrientation(approach_target_theta, vive_theta))
+        //         {
+        //             carPushingApproachAlignFlag = true;
+        //             Serial.println("Push.Aligned");
+        //         }
                 
-            }
-            else // if aligned, push the car
-            {
-                action.moveForward(); // use html_speed
-                // action.moveForward(4000); // use 4000 as speed
-                Serial.println("Push.Pushing");
+        //     }
+        //     else // if aligned, push the car
+        //     {
+        //         action.moveForward(); // use html_speed
+        //         // action.moveForward(4000); // use 4000 as speed
+        //         Serial.println("Push.Pushing");
 
-                // calculate the distance between the car and the center line
-                // if the car derivates from the line, repeat the approaching and aligning process
-                float vec_cd[2] = {police_x - push_target_x, police_y - push_target_y}; // vector from the car to the target position
-                float vec_rd[2] = {vive_x - push_target_x, vive_y - push_target_y}; // vector from the robot to the target position
-                auto rd_dot_cd = vec_cd[0] * vec_rd[0] + vec_cd[1] * vec_rd[1]; // dot product of the two vectors
-                auto scalar = rd_dot_cd / (vec_rd[0] * vec_rd[0] + vec_rd[1] * vec_rd[1]); // scalar of the projection of vec_cd to vec_rd
-                float vec_cd_prj_to_rd[2] = {scalar * vec_rd[0], scalar * vec_rd[1]}; // projection of vec_cd to vec_rd
-                float vec_c_dist[2] = {vec_cd[0] - vec_cd_prj_to_rd[0], vec_cd[1] - vec_cd_prj_to_rd[1]}; // vector from the car to the center line
-                auto derivation = sqrt(vec_c_dist[0] * vec_c_dist[0] + vec_c_dist[1] * vec_c_dist[1]); // distance between the car and the center line
-                if (derivation > 100)  // if the car derivates from the line 100mm
-                {
-                    carPushingApproachCarFlag = false;
-                    carPushingApproachAlignFlag = false;
-                    Serial.println("Push.Realigning");
-                }
-            }
-        }
+        //         // calculate the distance between the car and the center line
+        //         // if the car derivates from the line, repeat the approaching and aligning process
+        //         float vec_cd[2] = {police_x - push_target_x, police_y - push_target_y}; // vector from the car to the target position
+        //         float vec_rd[2] = {vive_x - push_target_x, vive_y - push_target_y}; // vector from the robot to the target position
+        //         auto rd_dot_cd = vec_cd[0] * vec_rd[0] + vec_cd[1] * vec_rd[1]; // dot product of the two vectors
+        //         auto scalar = rd_dot_cd / (vec_rd[0] * vec_rd[0] + vec_rd[1] * vec_rd[1]); // scalar of the projection of vec_cd to vec_rd
+        //         float vec_cd_prj_to_rd[2] = {scalar * vec_rd[0], scalar * vec_rd[1]}; // projection of vec_cd to vec_rd
+        //         float vec_c_dist[2] = {vec_cd[0] - vec_cd_prj_to_rd[0], vec_cd[1] - vec_cd_prj_to_rd[1]}; // vector from the car to the center line
+        //         auto derivation = sqrt(vec_c_dist[0] * vec_c_dist[0] + vec_c_dist[1] * vec_c_dist[1]); // distance between the car and the center line
+        //         if (derivation > 100)  // if the car derivates from the line 100mm
+        //         {
+        //             carPushingApproachCarFlag = false;
+        //             carPushingApproachAlignFlag = false;
+        //             Serial.println("Push.Realigning");
+        //         }
+        //     }
+        // }
     }
 
     void trophyMoving(float trophy_target_x, float trophy_target_y, int trophy_freq = 550, bool approach_only = true)
@@ -248,6 +250,7 @@ private:
         // Step I.a: find trophy of desired freq
         if (!trophyLockedFlag)
         {
+            action.releaseTrophy();
             action.turnLeftSamePlace(600);
             Serial.println("Trophy.Finding");
             if (ir_left_freq == trophy_freq && ir_right_freq != trophy_freq)
@@ -266,7 +269,7 @@ private:
                 delay(50);
                 
                 Serial.println("Trophy.Found and Locked");
-                for (int i = 0; i < 30; i++)
+                for (int i = 0; i < 10; i++)
                 {
                     for (int j = 0; j < 20; j++)
                     {
@@ -310,7 +313,7 @@ private:
             Serial.println(tof_front - tof_threshold);
             if (tof_front >= tof_threshold)
             {
-                action.moveForward(900);
+                action.moveForwardnoPID(900);
                 Serial.println("Trophy.Approaching");
                 if (ir_left_freq != trophy_freq && ir_right_freq != trophy_freq)
                 {

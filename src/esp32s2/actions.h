@@ -220,6 +220,18 @@ public:
         moveActionMode = MOVE_FORWARD;
     }
 
+        void moveForwardnoPID(int speed) // not using html_speed
+    {
+        // with speed parameter, however, this function does not have feedback control,
+        // therefore shouldn't be used directly in checkoff
+        // speed itself can be positive or negative
+        // here we want the car go forward regardless of the +/- sign of speed
+
+        setMotorSpeed(MOTOR_L, abs(speed));
+        setMotorSpeed(MOTOR_R, abs(speed));
+        moveActionMode = MOVE_FORWARD;
+    }
+
     void moveForward() // using html_speed
     {
         desSpeedL = abs(html_speed);
@@ -444,6 +456,11 @@ public:
     {
         setServoAngle(SERVO_JAW, 30);
         jawActionMode = JAW_RELEASE;
+    }
+
+    void wallFollowJaw()
+    {
+        setServoAngle(SERVO_JAW, 70);
     }
 
     // --- IR servo actions ---
